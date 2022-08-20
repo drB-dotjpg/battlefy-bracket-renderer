@@ -22,23 +22,31 @@ body {
 .grid-wrapper{
     display: grid;
     grid-template-columns: 1fr;
+    grid-template-rows: 3em auto;
     align-items: center;
     margin: 0 1em;
+}
+
+.grid-header{
+    color: white;
+    text-align: center;
+    font-size: 1.1em;
 }
 
 .round-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     flex-wrap: nowrap;
     background-color: whitesmoke;
     border-radius: .5em;
-    margin: .5em;
+    margin: .5em 0;
 }
 
 .team-wrapper {
     display: flex;
     align-items: baseline;
+    justify-content: space-between;
     border-radius: .25em;
     padding-left: .5em;
 }
@@ -49,10 +57,10 @@ body {
 
 .team-wrapper > .score {
     font-weight: 700;
-    font-size: 1.3em;
-    padding: .25em;
+    font-size: 1.2em;
+    padding: .1em .2em;
     border-radius: .25em;
-    margin: .1em;
+    margin: .05em .2em;
     background-color: rgba(0, 0, 0, 0.068);
 }
 
