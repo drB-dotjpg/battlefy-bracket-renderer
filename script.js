@@ -1,16 +1,73 @@
 var tempEndpoint = "https://api.battlefy.com/stages/628ba4e331af073dcd3476da/matches";
-var games = [];
-fetch(tempEndpoint)
-    .then(function (response) {
-    return response.json();
-})
-    .then(function (bracketResponse) {
-    for (var i = 0; i < bracketResponse.length; i++) {
-        games.push(jsonObjToGame(bracketResponse[i]));
-    }
-});
+endpointToHTMLElements(tempEndpoint, document.body);
+function endpointToHTMLElements(endpoint, element) {
+    fetch(endpoint)
+        .then(function (response) {
+        return response.json();
+    })
+        .then(function (bracketResponse) {
+        var winnersGames = [];
+        var winnersHighestRound = 0;
+        var losersGames = [];
+        var losersHighestRound = 0;
+        for (var i = 0; i < bracketResponse.length; i++) {
+            var game = jsonObjToGame(bracketResponse[i]);
+            if (!game.losers) {
+                winnersGames.push(game);
+                winnersHighestRound = Math.max(winnersHighestRound, game.round);
+            }
+            else {
+                losersGames.push(game);
+                losersHighestRound = Math.max(losersHighestRound, game.round);
+            }
+        }
+        var winnersBracketElement = document.createElement("div");
+        winnersBracketElement.classList.add("bracket-wrapper");
+        var winnersRounds = Array.apply(null, Array(winnersHighestRound)).map(function () { return []; });
+        for (var i = 0; i < winnersGames.length; i++) {
+            winnersRounds[winnersGames[i].round - 1].push(winnersGames[i]);
+        }
+        for (var i = 0; i < winnersRounds.length; i++) {
+            var grid = document.createElement("div");
+            grid.classList.add("grid-wrapper");
+            var gridHeader = document.createElement("div");
+            gridHeader.classList.add("grid-header");
+            gridHeader.innerText = "Round ".concat(i + 1);
+            grid.appendChild(gridHeader);
+            for (var j = 0; j < winnersRounds[i].length; j++) {
+                grid.appendChild(gameToHTMLElement(winnersRounds[i][j]));
+            }
+            winnersBracketElement.appendChild(grid);
+        }
+        var losersBracketElement = document.createElement("div");
+        losersBracketElement.classList.add("bracket-wrapper");
+        var losersRounds = Array.apply(null, Array(losersHighestRound)).map(function () { return []; });
+        for (var i = 0; i < losersGames.length; i++) {
+            losersRounds[losersGames[i].round - 1].push(losersGames[i]);
+        }
+        for (var i = 0; i < losersRounds.length; i++) {
+            var grid = document.createElement("div");
+            grid.classList.add("grid-wrapper");
+            var gridHeader = document.createElement("div");
+            gridHeader.classList.add("grid-header");
+            gridHeader.innerText = "Round ".concat(i + 1);
+            grid.appendChild(gridHeader);
+            for (var j = 0; j < losersRounds[i].length; j++) {
+                grid.appendChild(gameToHTMLElement(losersRounds[i][j]));
+            }
+            losersBracketElement.appendChild(grid);
+        }
+        element.appendChild(winnersBracketElement);
+        if (losersGames.length > 0) {
+            element.appendChild(losersBracketElement);
+        }
+    });
+}
 function jsonObjToGame(json) {
     var game = {
+        match: json.matchNumber,
+        round: json.roundNumber,
+        losers: json.matchType == "loser",
         topTeam: json.top.team.name,
         topScore: json.top.score,
         topWinner: json.top.winner,

@@ -1,4 +1,8 @@
 interface Game {
+    match: number;
+    round: number;
+    losers: boolean;
+
     topTeam: string;
     topScore: number;
     topWinner: boolean;
@@ -9,23 +13,93 @@ interface Game {
 }
 
 const tempEndpoint = "https://api.battlefy.com/stages/628ba4e331af073dcd3476da/matches";
-let games: Game[] = [];
+endpointToHTMLElements(tempEndpoint, document.body);
+
+function endpointToHTMLElements(endpoint: string, element: HTMLElement){
+    fetch(endpoint)
+    .then((response) => {
+        return response.json();
+    })
+    .then((bracketResponse) => {
+        
+        let winnersGames: Game[] = [];
+        let winnersHighestRound: number = 0;
+        let losersGames: Game[] = [];
+        let losersHighestRound: number = 0;
+        
+        for (var i = 0; i < bracketResponse.length; i++){
+            const game: Game = jsonObjToGame(bracketResponse[i]);
+            if (!game.losers){
+                winnersGames.push(game);
+                winnersHighestRound = Math.max(winnersHighestRound, game.round);
+            } else {
+                losersGames.push(game);
+                losersHighestRound = Math.max(losersHighestRound, game.round);
+            }
+        }
 
 
-fetch(tempEndpoint)
-.then((response) => {
-    return response.json();
-})
-.then((bracketResponse) => {
-    
-    for (var i = 0; i < bracketResponse.length; i++){
-        games.push(jsonObjToGame(bracketResponse[i]));
-    }
+        const winnersBracketElement = document.createElement("div");
+        winnersBracketElement.classList.add("bracket-wrapper");
+        const winnersRounds = Array.apply(null, Array(winnersHighestRound)).map(()=>{return []});
 
-});
+        for (var i = 0; i < winnersGames.length; i++){
+            winnersRounds[winnersGames[i].round-1].push(winnersGames[i]);
+        }
+
+        for (var i = 0; i < winnersRounds.length; i++){
+            const grid = document.createElement("div");
+            grid.classList.add("grid-wrapper");
+
+            const gridHeader = document.createElement("div");
+            gridHeader.classList.add("grid-header");
+            gridHeader.innerText = `Round ${i+1}`;
+            grid.appendChild(gridHeader);
+
+            for (var j = 0; j < winnersRounds[i].length; j++){
+                grid.appendChild(gameToHTMLElement(winnersRounds[i][j]));
+            }
+
+            winnersBracketElement.appendChild(grid);
+        }
+
+
+        const losersBracketElement = document.createElement("div");
+        losersBracketElement.classList.add("bracket-wrapper");
+        const losersRounds = Array.apply(null, Array(losersHighestRound)).map(()=>{return []});
+
+        for (var i = 0; i < losersGames.length; i++){
+            losersRounds[losersGames[i].round-1].push(losersGames[i]);
+        }
+
+        for (var i = 0; i < losersRounds.length; i++){
+            const grid = document.createElement("div");
+            grid.classList.add("grid-wrapper");
+
+            const gridHeader = document.createElement("div");
+            gridHeader.classList.add("grid-header");
+            gridHeader.innerText = `Round ${i+1}`;
+            grid.appendChild(gridHeader);
+
+            for (var j = 0; j < losersRounds[i].length; j++){
+                grid.appendChild(gameToHTMLElement(losersRounds[i][j]));
+            }
+
+            losersBracketElement.appendChild(grid);
+        }
+
+        element.appendChild(winnersBracketElement);
+        if (losersGames.length > 0){
+            element.appendChild(losersBracketElement);
+        }
+    });
+}
 
 function jsonObjToGame(json): Game{
     const game: Game = {
+        match: json.matchNumber,
+        round: json.roundNumber,
+        losers: json.matchType == "loser",
         topTeam: json.top.team.name,
         topScore: json.top.score,
         topWinner: json.top.winner,

@@ -24,7 +24,7 @@ body {
     grid-template-columns: 1fr;
     grid-template-rows: 3em auto;
     align-items: center;
-    margin: 0 1em;
+    margin: 0 .5em;
 }
 
 .grid-header{
@@ -41,6 +41,7 @@ body {
     background-color: whitesmoke;
     border-radius: .5em;
     margin: .5em 0;
+    font-size: .8em;
 }
 
 .team-wrapper {
@@ -49,6 +50,7 @@ body {
     justify-content: space-between;
     border-radius: .25em;
     padding-left: .5em;
+    white-space: nowrap;
 }
 
 .team-wrapper > .team {
