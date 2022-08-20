@@ -1,6 +1,7 @@
 function generateOnClick() {
     var inputVal = document.getElementById('input').value;
     var bracketZone = document.getElementById('bracket-zone');
+    bracketZone.innerHTML = "";
     endpointToHTMLElements(inputVal, bracketZone);
 }
 function endpointToHTMLElements(endpoint, element) {

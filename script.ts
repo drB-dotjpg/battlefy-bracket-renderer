@@ -17,6 +17,7 @@ interface Game {
 function generateOnClick(){
     const inputVal = (<HTMLInputElement>document.getElementById('input')).value;
     const bracketZone = document.getElementById('bracket-zone');
+    bracketZone.innerHTML = "";
     endpointToHTMLElements(inputVal, bracketZone);
 }
 
