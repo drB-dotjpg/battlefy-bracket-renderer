@@ -1,7 +1,10 @@
-var tempEndpoint = "https://api.battlefy.com/stages/628ba4e331af073dcd3476da/matches";
-endpointToHTMLElements(tempEndpoint, document.body);
+function generateOnClick() {
+    var inputVal = document.getElementById('input').value;
+    var bracketZone = document.getElementById('bracket-zone');
+    endpointToHTMLElements(inputVal, bracketZone);
+}
 function endpointToHTMLElements(endpoint, element) {
-    fetch(endpoint)
+    fetch("https://api.battlefy.com/stages/".concat(endpoint, "/matches"))
         .then(function (response) {
         return response.json();
     })
@@ -61,6 +64,8 @@ function endpointToHTMLElements(endpoint, element) {
         if (losersGames.length > 0) {
             element.appendChild(losersBracketElement);
         }
+        gsap.fromTo(".round-wrapper", { scale: 0 }, { scale: 1, stagger: { amount: 1.5, grid: "auto", from: "start" } });
+        gsap.fromTo(".grid-header", { opacity: 0 }, { opacity: 1, stagger: { amount: 1.5, grid: "auto", from: "start" } });
     });
 }
 function jsonObjToGame(json) {

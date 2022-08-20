@@ -1,3 +1,5 @@
+declare var gsap: any;
+
 interface Game {
     match: number;
     round: number;
@@ -12,11 +14,14 @@ interface Game {
     bottomWinner: boolean;
 }
 
-const tempEndpoint = "https://api.battlefy.com/stages/628ba4e331af073dcd3476da/matches";
-endpointToHTMLElements(tempEndpoint, document.body);
+function generateOnClick(){
+    const inputVal = (<HTMLInputElement>document.getElementById('input')).value;
+    const bracketZone = document.getElementById('bracket-zone');
+    endpointToHTMLElements(inputVal, bracketZone);
+}
 
 function endpointToHTMLElements(endpoint: string, element: HTMLElement){
-    fetch(endpoint)
+    fetch(`https://api.battlefy.com/stages/${endpoint}/matches`)
     .then((response) => {
         return response.json();
     })
@@ -92,6 +97,10 @@ function endpointToHTMLElements(endpoint: string, element: HTMLElement){
         if (losersGames.length > 0){
             element.appendChild(losersBracketElement);
         }
+
+        gsap.fromTo(".round-wrapper", {scale: 0}, {scale: 1, stagger:{amount: 1.5, grid: "auto", from: "start"}});
+        gsap.fromTo(".grid-header", {opacity: 0}, {opacity: 1, stagger:{amount: 1.5, grid: "auto", from: "start"}});
+
     });
 }
 

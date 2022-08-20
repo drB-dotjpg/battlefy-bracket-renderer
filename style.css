@@ -8,6 +8,21 @@ body {
     background-color: slategrey;
 }
 
+.options-wrapper{
+    display: flex;
+    justify-content: space-between;
+    padding: 1em;
+    margin: 1em;
+    background-color: white;
+    border-radius: 1em;
+}
+
+.options-wrapper input{
+    width: 100%;
+    min-width: 15em;
+    margin: 0 1em;
+}
+
 .bracket-title{
     font-size: 1.5em;
     margin-bottom: .5em;
