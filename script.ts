@@ -95,7 +95,7 @@ function endpointToHTMLElements(endpoint: string, element: HTMLElement){
 
             const gridHeader = document.createElement("div");
             gridHeader.classList.add("grid-header");
-            gridHeader.innerText = getRoundName(i+1, winnersRounds.length, true);
+            gridHeader.innerText = getRoundName(i+1, winnersRounds.length, losersGames.length > 1);
             grid.appendChild(gridHeader);
 
             for (var j = 0; j < winnersRounds[i].length; j++){
