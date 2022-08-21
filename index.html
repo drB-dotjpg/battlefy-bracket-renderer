@@ -13,9 +13,13 @@
 <body>
 
 <div class="options-wrapper">
-    <div style="white-space: nowrap;">Battlefy Bracket ID: </div>
-    <input id="input" value="628ba4e331af073dcd3476da">
-    <button onclick="generateOnClick()">Generate</button>
+    <div style="white-space: nowrap;">Battlefy Tourney URL: </div>
+    <input id="input" value="https://battlefy.com/inkling-performance-labs/low-ink-june-2022/628ba468ab4cf43f09d24943">
+    <button onclick="searchForBrackets()">Search</button>
+</div>
+<div class="options-wrapper" id="options-pt2" style="display: none;">
+    <div>Bracket</div>
+    <select id="bracket-select"></select>
 </div>
 
 <div id="bracket-zone"></div>
