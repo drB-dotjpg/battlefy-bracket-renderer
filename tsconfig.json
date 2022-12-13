@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
-        "target": "ES3",
-        "module": "CommonJS",
+        "target": "ES2015",
+        "outFile": "script.js",
         "sourceMap": true
     }
 }
