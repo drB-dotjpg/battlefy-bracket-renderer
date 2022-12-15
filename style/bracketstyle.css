@@ -7,6 +7,7 @@
 
 .bracket-wrapper{
     display: flex;
+    width: fit-content;
 }
 
 .grid-wrapper{
@@ -23,7 +24,7 @@
     font-size: 1.1em;
 }
 
-.round-wrapper {
+.elim-round-wrapper {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -34,7 +35,7 @@
     font-size: .8em;
 }
 
-.team-wrapper {
+.elim-round-wrapper > .team-wrapper {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -44,11 +45,11 @@
     min-width: 8em;
 }
 
-.team-wrapper > .team {
+.elim-round-wrapper > .team-wrapper > .team {
     margin-right: 1em;
 }
 
-.team-wrapper > .score {
+.elim-round-wrapper > .team-wrapper > .score {
     font-weight: 700;
     font-size: 1.2em;
     padding: .1em .2em;
@@ -58,10 +59,22 @@
 }
 
 .winner {
-    color: darkblue;
+    color: blue;
 }
 
 .elim-third{
     position: absolute;
     align-self: flex-end;
+}
+
+div[data-round-status="finished"]{
+    background: rgb(242, 252, 255);
+}
+
+div[data-round-status="in-progress"]{
+    box-shadow: 0 0 8px rgba(0, 0, 255, 0.582);
+}
+
+div[data-round-status="not-started"]{
+    opacity: .6;
 }

@@ -70,8 +70,15 @@ function getEliminationElement(matches: BracketMatch[], roundNaming?: "winners" 
 
 function getEliminationStyleMatchElement(match: BracketMatch): HTMLElement {
     const element = document.createElement("div");
-    element.className = "round-wrapper";
-    
+    element.className = "elim-round-wrapper";
+
+    if (match.topWinner || match.bottomWinner){
+        element.dataset.roundStatus = "finished";
+    } else if (match.topName !== undefined || match.bottomName !== undefined){
+        element.dataset.roundStatus = "in-progress"
+    } else {
+        element.dataset.roundStatus = "not-started";
+    }
 
     const topTeam = document.createElement("div");
     topTeam.className = "team-wrapper";

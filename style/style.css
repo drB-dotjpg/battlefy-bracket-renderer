@@ -36,8 +36,16 @@ body {
     width: 1920px;
     height: 1080px;
     background-color: slategray;
-    display: flex;
     flex-direction: column;
-    align-items: center;
     overflow: hidden;
 }
+
+#camera {
+    width: fit-content;
+    /* position: absolute; */
+}
+/* 
+#bound {
+    background-color: #ff000067;
+    position: absolute;
+} */

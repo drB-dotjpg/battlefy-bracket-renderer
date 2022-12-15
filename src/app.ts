@@ -6,17 +6,23 @@ var brackets : BracketInfo[];
 select.addEventListener("change", async function() {
     const element = document.getElementById("bracket-zone");
     element.innerHTML = "";
+    const camera = document.createElement("div");
+    camera.id = "camera";
+    element.appendChild(camera);
+
     const bracket = brackets[parseInt((<HTMLSelectElement>select).value)];
     const matches = await getBracketMatches(bracket);
+
     switch(bracket.type){
         case "elimination":
             if (bracket.style == "double"){
-                element.appendChild(getDoubleEliminationElement(matches));
+                camera.appendChild(getDoubleEliminationElement(matches));
             } else {
-                element.appendChild(getEliminationElement(matches));
+                camera.appendChild(getEliminationElement(matches));
             }
     }
-    showAll();
+    
+    showAll(true);
 });
 
 async function searchForBrackets(){

@@ -13,18 +13,21 @@ select.addEventListener("change", function () {
     return __awaiter(this, void 0, void 0, function* () {
         const element = document.getElementById("bracket-zone");
         element.innerHTML = "";
+        const camera = document.createElement("div");
+        camera.id = "camera";
+        element.appendChild(camera);
         const bracket = brackets[parseInt(select.value)];
         const matches = yield getBracketMatches(bracket);
         switch (bracket.type) {
             case "elimination":
                 if (bracket.style == "double") {
-                    element.appendChild(getDoubleEliminationElement(matches));
+                    camera.appendChild(getDoubleEliminationElement(matches));
                 }
                 else {
-                    element.appendChild(getEliminationElement(matches));
+                    camera.appendChild(getEliminationElement(matches));
                 }
         }
-        showAll();
+        showAll(true);
     });
 });
 function searchForBrackets() {
@@ -43,18 +46,95 @@ function searchForBrackets() {
         gsap.fromTo("#options-pt2", { display: "flex", opacity: 0, scale: .75 }, { opacity: 1, scale: 1 });
     });
 }
-function showAll() {
+const tl = gsap.timeline();
+function showAll(noAnim = false) {
     const root = document.getElementById("bracket-zone");
-    const bracket = root.firstChild;
-    bracket.style.transformOrigin = "top";
+    const camera = document.getElementById("camera");
+    const bracket = camera.firstChild;
+    bracket.style.transformOrigin = "top left";
     const bWidth = bracket.offsetWidth;
     const bHeight = bracket.offsetHeight;
-    if (bWidth > 1920 || bWidth < 1920) {
-        bracket.style.scale = (1920 / bWidth).toString();
+    var scale = 1;
+    if (bWidth > root.offsetWidth || bWidth < root.offsetWidth) {
+        scale = (root.offsetWidth / bWidth) * .98;
     }
-    if (bHeight > 1080 || bHeight < 1080) {
-        bracket.style.scale = (1080 / bHeight).toString();
+    if (bHeight > root.offsetHeight || bHeight < root.offsetHeight) {
+        scale = (root.offsetHeight / bHeight) * .98;
     }
+    moveCamera(bracket, (root.clientWidth - camera.clientWidth * scale) / 2, (root.clientHeight - camera.clientHeight * scale) / 2, scale, noAnim);
+}
+function showInProgress() {
+    const root = document.getElementById("bracket-zone");
+    var elementsOfInterest = root.querySelectorAll("div[data-round-status=\"in-progress\"]");
+    if (elementsOfInterest.length <= 0) {
+        return;
+    }
+    centerOnElements(elementsOfInterest);
+}
+function showFinished() {
+    const root = document.getElementById("bracket-zone");
+    var elementsOfInterest = root.querySelectorAll("div[data-round-status=\"finished\"]");
+    if (elementsOfInterest.length <= 0) {
+        return;
+    }
+    centerOnElements(elementsOfInterest);
+}
+function centerOnElements(elementsOfInterest) {
+    const root = document.getElementById("bracket-zone");
+    const camera = document.getElementById("camera");
+    const bracket = camera.firstChild;
+    bracket.style.transformOrigin = "top left";
+    var maxWidth = 0;
+    var minWidth = root.clientWidth;
+    var maxHeight = 0;
+    var minHeight = root.clientHeight;
+    for (var i = 0; i < elementsOfInterest.length; i++) {
+        const elim = elementsOfInterest[i];
+        const pos = getPosOfElement(root, elim);
+        console.log(elementsOfInterest[i], pos);
+        maxWidth = Math.max(...pos[0], maxWidth);
+        minWidth = Math.min(...pos[0], minWidth);
+        maxHeight = Math.max(...pos[1], maxHeight);
+        minHeight = Math.min(...pos[1], minHeight);
+    }
+    console.log(maxWidth, minWidth, maxHeight, minHeight);
+    const targetWidth = maxWidth - minWidth;
+    const targetHeight = maxHeight - minHeight;
+    var scale = 1;
+    if (targetWidth > root.clientWidth || targetWidth < root.clientWidth) {
+        scale = Math.min(((root.clientWidth / targetWidth) * .85), 2);
+    }
+    if (targetHeight > root.clientHeight || targetHeight < root.clientHeight) {
+        scale = Math.min(((root.clientHeight / targetHeight) * .85), 2);
+    }
+    moveCamera(bracket, (root.clientWidth - maxWidth * scale - minWidth * scale) / 2, (root.clientHeight - maxHeight * scale - minHeight * scale) / 2, scale);
+}
+function getPosOfElement(root, elim) {
+    return [
+        [elim.offsetLeft, elim.offsetLeft + elim.clientWidth],
+        [elim.offsetTop, elim.offsetTop + elim.clientHeight]
+    ];
+}
+function moveCamera(elim, x, y, scale, instant = false) {
+    const camera = document.getElementById("camera");
+    tl.to(camera, {
+        x: x,
+        y: y,
+        duration: instant ? 0 : 1,
+        ease: "power2.inOut"
+    })
+        .to(elim, {
+        scale: scale,
+        duration: instant ? 0 : 1,
+        ease: "power2.inOut"
+    }, "<");
+}
+//for debug
+function setBound(x, y, w, h) {
+    const bound = document.getElementById("bound");
+    bound.style.transform = `translate(${x}px, ${y}px)`;
+    bound.style.width = w + "px";
+    bound.style.height = h + "px";
 }
 function getDoubleEliminationElement(matches) {
     const element = document.createElement("div");
@@ -117,7 +197,16 @@ function getEliminationElement(matches, roundNaming) {
 }
 function getEliminationStyleMatchElement(match) {
     const element = document.createElement("div");
-    element.className = "round-wrapper";
+    element.className = "elim-round-wrapper";
+    if (match.topWinner || match.bottomWinner) {
+        element.dataset.roundStatus = "finished";
+    }
+    else if (match.topName !== undefined || match.bottomName !== undefined) {
+        element.dataset.roundStatus = "in-progress";
+    }
+    else {
+        element.dataset.roundStatus = "not-started";
+    }
     const topTeam = document.createElement("div");
     topTeam.className = "team-wrapper";
     if (match.topWinner) {
