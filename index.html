@@ -15,18 +15,43 @@
 
 <div class="options-wrapper">
     <div style="white-space: nowrap;">Battlefy Tourney URL: </div>
-    <input id="input" value="https://battlefy.com/jpgs-questionable-tournaments/test/6398b7ad34bf4f70da18409b/info?infoTab=details">
+    <input type="text" id="input" value="https://battlefy.com/jpgs-questionable-tournaments/test/6398b7ad34bf4f70da18409b/info?infoTab=details">
     <button onclick="searchForBrackets()">Search</button>
 </div>
-<div class="options-wrapper" id="options-pt2" style="display: none;">
+<div class="controls-wrapper" id="options-pt2" style="display: none;">
     <div>Bracket</div>
     <select id="bracket-select"></select>
-    <button onclick="showAll()">Show All</button>
-    <button onclick="showInProgress()">Show In Progress</button>
-    <button onclick="showFinished()">Show Finished</button>
+    <div class="controls" id="controls-elim">
+        <button onclick="showAll()">Show All</button>
+        <button onclick="showInProgress()">Show In Progress</button>
+        <button onclick="showFinished()">Show Finished</button>
+    </div>
+    <div class="controls" id="controls-double-elim">
+        <label for="both">Both
+            <input type="radio" name="de-bracket-cam" value="both">
+        </label>
+        <label for="winners">Winners
+            <input type="radio" name="de-bracket-cam" value="winners">
+        </label>
+        <label for="losers">Losers
+            <input type="radio" name="de-bracket-cam" value="losers">
+        </label>
+        <button onclick="showAll()">Show All</button>
+        <button onclick="showInProgress()">Show In Progress</button>
+        <button onclick="showFinished()">Show Finished</button>
+    </div>
+    <div class="controls" id="controls-swiss">
+        <label for="swiss-round-select"> Round
+            <select id="swiss-round-select" name="swiss-round-select"></select>
+        </label>
+        <button onclick="showAll()">Show All</button>
+        <button onclick="showInProgress()">Show In Progress</button>
+        <button onclick="showFinished()">Show Finished</button>
+    </div>
 </div>
 
-<div id="bracket-zone"></div>
+<div id="bracket-zone">
+</div>
 
 </body>
 </html>

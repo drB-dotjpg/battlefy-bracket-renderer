@@ -23,14 +23,14 @@ function getDoubleEliminationElement(matches: BracketMatch[]) : HTMLElement{
 
 function getEliminationElement(matches: BracketMatch[], roundNaming?: "winners" | "losers") : HTMLElement {
     const element: HTMLElement = document.createElement("div");
-    element.className = "bracket-wrapper";
+    element.className = "elim-bracket-wrapper";
 
     const roundElims: HTMLElement[] = [];
     const roundsNum = Math.max(...matches.map(o => o.roundNumber));
 
     for (var i = 0; i < roundsNum; i++){
         const roundElim = document.createElement("div");
-        roundElim.className = "grid-wrapper";
+        roundElim.className = "elim-grid-wrapper";
         const roundHeader = document.createElement("div");
         roundHeader.className = "grid-header";
 
@@ -71,6 +71,73 @@ function getEliminationElement(matches: BracketMatch[], roundNaming?: "winners" 
 function getEliminationStyleMatchElement(match: BracketMatch): HTMLElement {
     const element = document.createElement("div");
     element.className = "elim-round-wrapper";
+
+    if (match.topWinner || match.bottomWinner){
+        element.dataset.roundStatus = "finished";
+    } else if (match.topName !== undefined || match.bottomName !== undefined){
+        element.dataset.roundStatus = "in-progress"
+    } else {
+        element.dataset.roundStatus = "not-started";
+    }
+
+    const topTeam = document.createElement("div");
+    topTeam.className = "team-wrapper";
+
+    if (match.topWinner){
+        topTeam.classList.add("winner");
+    }
+    
+    const topName = document.createElement("div");
+    topName.className = "team";
+    topName.innerText = match.topName !== undefined ? match.topName : "-";
+
+    const topScore = document.createElement("div");
+    topScore.className = "score";
+    topScore.innerText = match.topScore !== undefined ? match.topScore.toString() : "-";
+
+    topTeam.appendChild(topName);
+    topTeam.appendChild(topScore);
+
+    const bottomTeam = document.createElement("div");
+    bottomTeam.className = "team-wrapper";
+
+    if (match.bottomWinner) {
+        bottomTeam.classList.add("winner");
+    }
+
+    const bottomName = document.createElement("div");
+    bottomName.className = "team";
+    bottomName.innerText = match.bottomName !== undefined ? match.bottomName : "-";
+
+    const bottomScore = document.createElement("div");
+    bottomScore.className = "score";
+    bottomScore.innerText = match.bottomScore !== undefined ? match.bottomScore.toString() : "-";
+
+    bottomTeam.appendChild(bottomName);
+    bottomTeam.appendChild(bottomScore);
+
+    element.appendChild(topTeam);
+    element.appendChild(bottomTeam);
+
+    return element;
+}
+
+function getSwissElement(matches: BracketMatch[], round: number): HTMLElement {
+    const element = document.createElement("div");
+    element.className = "swiss-bracket-wrapper";
+
+    for (var i = 0; i < matches.length; i++){
+        if (matches[i].roundNumber == round){
+            element.appendChild(getSwissStyleMatchElement(matches[i]));
+        }
+    }
+
+    return element;
+}
+
+function getSwissStyleMatchElement(match: BracketMatch): HTMLElement {
+    const element = document.createElement("div");
+    element.className = "swiss-round-wrapper";
 
     if (match.topWinner || match.bottomWinner){
         element.dataset.roundStatus = "finished";

@@ -11,6 +11,11 @@ const select = document.getElementById("bracket-select");
 var brackets;
 select.addEventListener("change", function () {
     return __awaiter(this, void 0, void 0, function* () {
+        yield updateBracket();
+    });
+});
+function updateBracket(roundNum = 1) {
+    return __awaiter(this, void 0, void 0, function* () {
         const element = document.getElementById("bracket-zone");
         element.innerHTML = "";
         const camera = document.createElement("div");
@@ -18,18 +23,28 @@ select.addEventListener("change", function () {
         element.appendChild(camera);
         const bracket = brackets[parseInt(select.value)];
         const matches = yield getBracketMatches(bracket);
+        console.log(matches);
         switch (bracket.type) {
             case "elimination":
                 if (bracket.style == "double") {
                     camera.appendChild(getDoubleEliminationElement(matches));
+                    showControl("double-elim");
                 }
                 else {
                     camera.appendChild(getEliminationElement(matches));
+                    showControl("elim");
+                }
+                break;
+            case "swiss":
+                camera.appendChild(getSwissElement(matches, roundNum));
+                showControl("swiss");
+                if (roundNum == 1) {
+                    addSwissRoundControls(matches[matches.length - 1].roundNumber);
                 }
         }
         showAll(true);
     });
-});
+}
 function searchForBrackets() {
     return __awaiter(this, void 0, void 0, function* () {
         const inputVal = document.getElementById('input').value;
@@ -43,22 +58,49 @@ function searchForBrackets() {
             select.appendChild(option);
         }
         select.dispatchEvent(new Event('change'));
-        gsap.fromTo("#options-pt2", { display: "flex", opacity: 0, scale: .75 }, { opacity: 1, scale: 1 });
+        gsap.fromTo("#options-pt2", { display: "block", opacity: 0, scale: .75 }, { opacity: 1, scale: 1 });
     });
 }
+function showControl(type) {
+    const allControls = document.querySelectorAll(".controls");
+    for (var i = 0; i < allControls.length; i++) {
+        if (allControls[i].id == "controls-" + type) {
+            allControls[i].style.display = "flex";
+        }
+        else {
+            allControls[i].style.display = "none";
+        }
+    }
+}
+function addSwissRoundControls(rounds) {
+    const selector = document.getElementById("swiss-round-select");
+    selector.innerHTML = '';
+    for (var i = 0; i < rounds; i++) {
+        const option = document.createElement("option");
+        option.value = (i + 1).toString();
+        option.innerText = (i + 1).toString();
+        selector.appendChild(option);
+    }
+}
+const swissRound = document.getElementById("swiss-round-select");
+swissRound.addEventListener("change", function () {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield updateBracket(parseInt(swissRound.value));
+    });
+});
 const tl = gsap.timeline();
 function showAll(noAnim = false) {
     const root = document.getElementById("bracket-zone");
     const camera = document.getElementById("camera");
-    const bracket = camera.firstChild;
+    const bracket = camera.firstElementChild;
     bracket.style.transformOrigin = "top left";
     const bWidth = bracket.offsetWidth;
     const bHeight = bracket.offsetHeight;
     var scale = 1;
-    if (bWidth > root.offsetWidth || bWidth < root.offsetWidth) {
+    if ((bWidth > root.offsetWidth || bWidth < root.offsetWidth)) {
         scale = (root.offsetWidth / bWidth) * .98;
     }
-    if (bHeight > root.offsetHeight || bHeight < root.offsetHeight) {
+    if ((bHeight > root.offsetHeight || bHeight < root.offsetHeight)) {
         scale = (root.offsetHeight / bHeight) * .98;
     }
     moveCamera(bracket, (root.clientWidth - camera.clientWidth * scale) / 2, (root.clientHeight - camera.clientHeight * scale) / 2, scale, noAnim);
@@ -156,12 +198,12 @@ function getDoubleEliminationElement(matches) {
 }
 function getEliminationElement(matches, roundNaming) {
     const element = document.createElement("div");
-    element.className = "bracket-wrapper";
+    element.className = "elim-bracket-wrapper";
     const roundElims = [];
     const roundsNum = Math.max(...matches.map(o => o.roundNumber));
     for (var i = 0; i < roundsNum; i++) {
         const roundElim = document.createElement("div");
-        roundElim.className = "grid-wrapper";
+        roundElim.className = "elim-grid-wrapper";
         const roundHeader = document.createElement("div");
         roundHeader.className = "grid-header";
         if (roundNaming == "winners" && i == roundsNum - 2) {
@@ -198,6 +240,58 @@ function getEliminationElement(matches, roundNaming) {
 function getEliminationStyleMatchElement(match) {
     const element = document.createElement("div");
     element.className = "elim-round-wrapper";
+    if (match.topWinner || match.bottomWinner) {
+        element.dataset.roundStatus = "finished";
+    }
+    else if (match.topName !== undefined || match.bottomName !== undefined) {
+        element.dataset.roundStatus = "in-progress";
+    }
+    else {
+        element.dataset.roundStatus = "not-started";
+    }
+    const topTeam = document.createElement("div");
+    topTeam.className = "team-wrapper";
+    if (match.topWinner) {
+        topTeam.classList.add("winner");
+    }
+    const topName = document.createElement("div");
+    topName.className = "team";
+    topName.innerText = match.topName !== undefined ? match.topName : "-";
+    const topScore = document.createElement("div");
+    topScore.className = "score";
+    topScore.innerText = match.topScore !== undefined ? match.topScore.toString() : "-";
+    topTeam.appendChild(topName);
+    topTeam.appendChild(topScore);
+    const bottomTeam = document.createElement("div");
+    bottomTeam.className = "team-wrapper";
+    if (match.bottomWinner) {
+        bottomTeam.classList.add("winner");
+    }
+    const bottomName = document.createElement("div");
+    bottomName.className = "team";
+    bottomName.innerText = match.bottomName !== undefined ? match.bottomName : "-";
+    const bottomScore = document.createElement("div");
+    bottomScore.className = "score";
+    bottomScore.innerText = match.bottomScore !== undefined ? match.bottomScore.toString() : "-";
+    bottomTeam.appendChild(bottomName);
+    bottomTeam.appendChild(bottomScore);
+    element.appendChild(topTeam);
+    element.appendChild(bottomTeam);
+    return element;
+}
+function getSwissElement(matches, round) {
+    const element = document.createElement("div");
+    element.className = "swiss-bracket-wrapper";
+    for (var i = 0; i < matches.length; i++) {
+        if (matches[i].roundNumber == round) {
+            element.appendChild(getSwissStyleMatchElement(matches[i]));
+        }
+    }
+    return element;
+}
+function getSwissStyleMatchElement(match) {
+    const element = document.createElement("div");
+    element.className = "swiss-round-wrapper";
     if (match.topWinner || match.bottomWinner) {
         element.dataset.roundStatus = "finished";
     }

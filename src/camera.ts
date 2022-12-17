@@ -4,22 +4,20 @@ const tl = gsap.timeline();
 function showAll(noAnim: boolean = false){
     const root = document.getElementById("bracket-zone");
     const camera = document.getElementById("camera");
-    const bracket = camera.firstChild as HTMLElement;
+    const bracket = camera.firstElementChild as HTMLElement;
     bracket.style.transformOrigin = "top left";
-
 
     const bWidth = bracket.offsetWidth;
     const bHeight = bracket.offsetHeight;
 
     var scale = 1;
-    if (bWidth > root.offsetWidth || bWidth < root.offsetWidth){
+    if ((bWidth > root.offsetWidth || bWidth < root.offsetWidth)){
         scale = (root.offsetWidth/bWidth) * .98;
     }
-    if (bHeight > root.offsetHeight || bHeight < root.offsetHeight){
+    if ((bHeight > root.offsetHeight || bHeight < root.offsetHeight)){
         scale = (root.offsetHeight/bHeight) * .98;
     }
 
-    
     moveCamera(
         bracket,
         (root.clientWidth - camera.clientWidth * scale) / 2,

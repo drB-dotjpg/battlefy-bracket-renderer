@@ -8,28 +8,50 @@ body {
     background-color: darkgrey;
 }
 
+label {
+    font-size: .6em;
+    margin: 0;
+}
+
 .options-wrapper{
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 1em;
     margin: .5em 1em;
     background-color: white;
     border-radius: 1em;
 }
 
-.options-wrapper input{
+.options-wrapper input[type=text]{
     width: 100%;
     min-width: 15em;
     margin: 0 1em;
 }
 
-.options-wrapper select {
-    width: 100%;
+.options-wrapper button {
     margin-left: 1em;
 }
 
-.options-wrapper button {
-    margin-left: 1em;
+.controls-wrapper{
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    border-radius: 1em;
+    padding: 1em;
+    margin: 1em;
+    background-color: white;
+}
+
+.controls {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 1em;
+}
+
+.controls > * {
+    margin-top: .5em;
 }
 
 #bracket-zone{
