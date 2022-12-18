@@ -19,16 +19,31 @@
     <button onclick="searchForBrackets()">Search</button>
 </div>
 <div class="controls-wrapper" id="options-pt2" style="display: none;">
-    <div>Bracket</div>
+
+    <div class="divider">Bracket</div>
     <select id="bracket-select"></select>
-    <div class="controls" id="controls-elim">
-        <button onclick="showAll()">Show All</button>
-        <button onclick="showInProgress()">Show In Progress</button>
-        <button onclick="showFinished()">Show Finished</button>
+
+    <div class="controls" id="cam-controls">
+        <div class="divider">Match Type</div>
+        <label for="all">Show All
+            <input type="radio" name="cam-focus" value="all" checked>
+        </label>
+        <label for="in-progress">In Progress
+            <input type="radio" name="cam-focus" value="in-progress">
+        </label>
+        <label for="finished">Finished
+            <input type="radio" name="cam-focus" value="finished">
+        </label>
     </div>
+
+    <div class="controls" id="controls-elim">
+        <button class="update-button" onclick="updateCamera('elim')">Update</button>
+    </div>
+
     <div class="controls" id="controls-double-elim">
+        <div class="divider">Bracket Select</div>
         <label for="both">Both
-            <input type="radio" name="de-bracket-cam" value="both">
+            <input type="radio" name="de-bracket-cam" value="both" checked>
         </label>
         <label for="winners">Winners
             <input type="radio" name="de-bracket-cam" value="winners">
@@ -36,18 +51,16 @@
         <label for="losers">Losers
             <input type="radio" name="de-bracket-cam" value="losers">
         </label>
-        <button onclick="showAll()">Show All</button>
-        <button onclick="showInProgress()">Show In Progress</button>
-        <button onclick="showFinished()">Show Finished</button>
+        <button class="update-button" onclick="updateCamera('double-elim')">Update</button>
     </div>
+
     <div class="controls" id="controls-swiss">
         <label for="swiss-round-select"> Round
             <select id="swiss-round-select" name="swiss-round-select"></select>
         </label>
-        <button onclick="showAll()">Show All</button>
-        <button onclick="showInProgress()">Show In Progress</button>
-        <button onclick="showFinished()">Show Finished</button>
+        <button class="update-button" onclick="updateCamera('swiss')">Update</button>
     </div>
+
 </div>
 
 <div id="bracket-zone">

@@ -12,20 +12,22 @@ async function updateBracket(roundNum: number = 1){
     element.innerHTML = "";
     const camera = document.createElement("div");
     camera.id = "camera";
+    camera.style.transform = "translate(0px,0px)"; //this fixes a bug ???? LOL
     element.appendChild(camera);
 
     const bracket = brackets[parseInt((<HTMLSelectElement>select).value)];
     const matches = await getBracketMatches(bracket);
-    console.log(matches)
 
     switch(bracket.type){
         case "elimination":
             if (bracket.style == "double"){
                 camera.appendChild(getDoubleEliminationElement(matches));
                 showControl("double-elim");
+                updateCamera("double-elim", true);
             } else {
                 camera.appendChild(getEliminationElement(matches));
                 showControl("elim");
+                updateCamera("elim", true)
             }
             break;
         case "swiss":
@@ -34,9 +36,8 @@ async function updateBracket(roundNum: number = 1){
             if (roundNum == 1){
                 addSwissRoundControls(matches[matches.length-1].roundNumber);
             }
+            updateCamera("swiss", true);
     }
-    
-    showAll(true);
 }
 
 async function searchForBrackets(){
@@ -61,7 +62,7 @@ async function searchForBrackets(){
 function showControl(type: "elim" | "double-elim" | "swiss" | "groups"){
     const allControls = document.querySelectorAll(".controls");
     for (var i = 0; i < allControls.length; i++){
-        if (allControls[i].id == "controls-" + type){
+        if (allControls[i].id == "controls-" + type || allControls[i].id == "cam-controls"){
             (allControls[i] as HTMLElement).style.display = "flex";
         } else {
             (allControls[i] as HTMLElement).style.display = "none";

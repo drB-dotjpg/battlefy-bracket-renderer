@@ -20,19 +20,21 @@ function updateBracket(roundNum = 1) {
         element.innerHTML = "";
         const camera = document.createElement("div");
         camera.id = "camera";
+        camera.style.transform = "translate(0px,0px)"; //this fixes a bug ???? LOL
         element.appendChild(camera);
         const bracket = brackets[parseInt(select.value)];
         const matches = yield getBracketMatches(bracket);
-        console.log(matches);
         switch (bracket.type) {
             case "elimination":
                 if (bracket.style == "double") {
                     camera.appendChild(getDoubleEliminationElement(matches));
                     showControl("double-elim");
+                    updateCamera("double-elim", true);
                 }
                 else {
                     camera.appendChild(getEliminationElement(matches));
                     showControl("elim");
+                    updateCamera("elim", true);
                 }
                 break;
             case "swiss":
@@ -41,8 +43,8 @@ function updateBracket(roundNum = 1) {
                 if (roundNum == 1) {
                     addSwissRoundControls(matches[matches.length - 1].roundNumber);
                 }
+                updateCamera("swiss", true);
         }
-        showAll(true);
     });
 }
 function searchForBrackets() {
@@ -64,7 +66,7 @@ function searchForBrackets() {
 function showControl(type) {
     const allControls = document.querySelectorAll(".controls");
     for (var i = 0; i < allControls.length; i++) {
-        if (allControls[i].id == "controls-" + type) {
+        if (allControls[i].id == "controls-" + type || allControls[i].id == "cam-controls") {
             allControls[i].style.display = "flex";
         }
         else {
@@ -89,25 +91,79 @@ swissRound.addEventListener("change", function () {
     });
 });
 const tl = gsap.timeline();
+function updateCamera(bracketType, noAnim = false) {
+    var camFocusVal = document.querySelector('input[name="cam-focus"]:checked').value;
+    //i hope you like nested code (remember this is just a prototype!)
+    switch (bracketType) {
+        case "elim":
+            if (camFocusVal == "all") {
+                showAll(noAnim);
+            }
+            else if (camFocusVal == "in-progress") {
+                showInProgress();
+            }
+            else if (camFocusVal == "finished") {
+                showFinished();
+            }
+            break;
+        case "double-elim":
+            const bracketFocusVal = document.querySelector('input[name="de-bracket-cam"]:checked').value;
+            if (camFocusVal == "all") {
+                showAllDE(bracketFocusVal, noAnim);
+            }
+            else if (camFocusVal == "in-progress") {
+                showInProgressDE(bracketFocusVal);
+            }
+            else if (camFocusVal == "finished") {
+                showFinishedDE(bracketFocusVal);
+            }
+            break;
+        case "swiss":
+            if (camFocusVal == "all") {
+            }
+            else if (camFocusVal == "in-progress") {
+            }
+            else if (camFocusVal == "finished") {
+            }
+            break;
+        case "groups":
+            if (camFocusVal == "all") {
+            }
+            else if (camFocusVal == "in-progress") {
+            }
+            else if (camFocusVal == "finished") {
+            }
+            break;
+    }
+}
 function showAll(noAnim = false) {
     const root = document.getElementById("bracket-zone");
-    const camera = document.getElementById("camera");
-    const bracket = camera.firstElementChild;
-    bracket.style.transformOrigin = "top left";
-    const bWidth = bracket.offsetWidth;
-    const bHeight = bracket.offsetHeight;
-    var scale = 1;
-    if ((bWidth > root.offsetWidth || bWidth < root.offsetWidth)) {
-        scale = (root.offsetWidth / bWidth) * .98;
+    var camera = root.querySelectorAll(".bracket");
+    centerOnElements(camera, noAnim);
+}
+function showAllDE(bracket, noAnim = false) {
+    if (bracket == "both") {
+        showAll(noAnim);
+        return;
     }
-    if ((bHeight > root.offsetHeight || bHeight < root.offsetHeight)) {
-        scale = (root.offsetHeight / bHeight) * .98;
-    }
-    moveCamera(bracket, (root.clientWidth - camera.clientWidth * scale) / 2, (root.clientHeight - camera.clientHeight * scale) / 2, scale, noAnim);
+    const bracketOfInterest = document.querySelectorAll(`.bracket[data-bracket-type=${bracket}]`);
+    centerOnElements(bracketOfInterest, noAnim);
 }
 function showInProgress() {
     const root = document.getElementById("bracket-zone");
     var elementsOfInterest = root.querySelectorAll("div[data-round-status=\"in-progress\"]");
+    if (elementsOfInterest.length <= 0) {
+        return;
+    }
+    centerOnElements(elementsOfInterest);
+}
+function showInProgressDE(bracket) {
+    if (bracket == "both") {
+        showInProgress();
+        return;
+    }
+    const bracketOfInterest = document.querySelector(`.bracket[data-bracket-type=${bracket}]`);
+    var elementsOfInterest = bracketOfInterest.querySelectorAll("div[data-round-status=\"in-progress\"]");
     if (elementsOfInterest.length <= 0) {
         return;
     }
@@ -121,7 +177,19 @@ function showFinished() {
     }
     centerOnElements(elementsOfInterest);
 }
-function centerOnElements(elementsOfInterest) {
+function showFinishedDE(bracket) {
+    if (bracket == "both") {
+        showFinished();
+        return;
+    }
+    const bracketOfInterest = document.querySelector(`.bracket[data-bracket-type=${bracket}]`);
+    var elementsOfInterest = bracketOfInterest.querySelectorAll("div[data-round-status=\"finished\"]");
+    if (elementsOfInterest.length <= 0) {
+        return;
+    }
+    centerOnElements(elementsOfInterest);
+}
+function centerOnElements(elementsOfInterest, noAnim = false) {
     const root = document.getElementById("bracket-zone");
     const camera = document.getElementById("camera");
     const bracket = camera.firstChild;
@@ -143,13 +211,21 @@ function centerOnElements(elementsOfInterest) {
     const targetWidth = maxWidth - minWidth;
     const targetHeight = maxHeight - minHeight;
     var scale = 1;
-    if (targetWidth > root.clientWidth || targetWidth < root.clientWidth) {
-        scale = Math.min(((root.clientWidth / targetWidth) * .85), 2);
+    console.log(targetWidth, root.clientWidth);
+    if (targetWidth > root.clientWidth) {
+        scale = (root.clientWidth / targetWidth) * .98;
+        console.log("width fit");
     }
-    if (targetHeight > root.clientHeight || targetHeight < root.clientHeight) {
-        scale = Math.min(((root.clientHeight / targetHeight) * .85), 2);
+    else {
+        // if (targetHeight < root.clientHeight){
+        scale = (root.clientHeight / targetHeight) * .98;
+        console.log("height fit");
+        if (targetWidth * scale > root.clientWidth) {
+            scale = (root.clientWidth / targetWidth) * .98;
+            console.log("width fit 2");
+        }
     }
-    moveCamera(bracket, (root.clientWidth - maxWidth * scale - minWidth * scale) / 2, (root.clientHeight - maxHeight * scale - minHeight * scale) / 2, scale);
+    moveCamera(bracket, (root.clientWidth - maxWidth * scale - minWidth * scale) / 2, (root.clientHeight - maxHeight * scale - minHeight * scale) / 2, scale, noAnim);
 }
 function getPosOfElement(root, elim) {
     return [
@@ -171,13 +247,6 @@ function moveCamera(elim, x, y, scale, instant = false) {
         ease: "power2.inOut"
     }, "<");
 }
-//for debug
-function setBound(x, y, w, h) {
-    const bound = document.getElementById("bound");
-    bound.style.transform = `translate(${x}px, ${y}px)`;
-    bound.style.width = w + "px";
-    bound.style.height = h + "px";
-}
 function getDoubleEliminationElement(matches) {
     const element = document.createElement("div");
     const winnersMatches = [];
@@ -191,7 +260,9 @@ function getDoubleEliminationElement(matches) {
         }
     }
     const winnersElement = getEliminationElement(winnersMatches, "winners");
+    winnersElement.dataset.bracketType = "winners";
     const losersElement = getEliminationElement(losersMatches, "losers");
+    losersElement.dataset.bracketType = "losers";
     element.appendChild(winnersElement);
     element.appendChild(losersElement);
     return element;
@@ -199,6 +270,7 @@ function getDoubleEliminationElement(matches) {
 function getEliminationElement(matches, roundNaming) {
     const element = document.createElement("div");
     element.className = "elim-bracket-wrapper";
+    element.classList.add("bracket");
     const roundElims = [];
     const roundsNum = Math.max(...matches.map(o => o.roundNumber));
     for (var i = 0; i < roundsNum; i++) {
@@ -282,6 +354,7 @@ function getEliminationStyleMatchElement(match) {
 function getSwissElement(matches, round) {
     const element = document.createElement("div");
     element.className = "swiss-bracket-wrapper";
+    element.classList.add("bracket");
     for (var i = 0; i < matches.length; i++) {
         if (matches[i].roundNumber == round) {
             element.appendChild(getSwissStyleMatchElement(matches[i]));

@@ -1,35 +1,90 @@
 declare var gsap: any;
 const tl = gsap.timeline();
 
+function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "groups", noAnim: boolean = false){
+    var camFocusVal = (document.querySelector('input[name="cam-focus"]:checked') as HTMLSelectElement).value;
+
+    //i hope you like nested code (remember this is just a prototype!)
+    switch(bracketType){
+        case "elim":
+            if(camFocusVal == "all"){
+                showAll(noAnim);
+            } else if (camFocusVal == "in-progress") {
+                showInProgress();
+            } else if (camFocusVal == "finished"){
+                showFinished();
+            }
+        break;
+
+        case "double-elim":
+            const bracketFocusVal = (document.querySelector('input[name="de-bracket-cam"]:checked') as HTMLSelectElement).value;
+            if(camFocusVal == "all"){
+                showAllDE(bracketFocusVal, noAnim);
+            } else if (camFocusVal == "in-progress") {
+                showInProgressDE(bracketFocusVal);
+            } else if (camFocusVal == "finished"){
+                showFinishedDE(bracketFocusVal);
+            }
+        break;
+
+        case "swiss":
+            if(camFocusVal == "all"){
+                
+            } else if (camFocusVal == "in-progress") {
+
+            } else if (camFocusVal == "finished"){
+                
+            }
+        break;
+
+        case "groups":
+            if(camFocusVal == "all"){
+
+            } else if (camFocusVal == "in-progress") {
+
+            } else if (camFocusVal == "finished"){
+                
+            }
+        break;
+    }
+}
+
 function showAll(noAnim: boolean = false){
     const root = document.getElementById("bracket-zone");
-    const camera = document.getElementById("camera");
-    const bracket = camera.firstElementChild as HTMLElement;
-    bracket.style.transformOrigin = "top left";
+    var camera = root.querySelectorAll(".bracket");
 
-    const bWidth = bracket.offsetWidth;
-    const bHeight = bracket.offsetHeight;
+    centerOnElements(camera, noAnim);
+}
 
-    var scale = 1;
-    if ((bWidth > root.offsetWidth || bWidth < root.offsetWidth)){
-        scale = (root.offsetWidth/bWidth) * .98;
-    }
-    if ((bHeight > root.offsetHeight || bHeight < root.offsetHeight)){
-        scale = (root.offsetHeight/bHeight) * .98;
+function showAllDE(bracket: string, noAnim: boolean = false){
+    if (bracket == "both"){
+        showAll(noAnim);
+        return;
     }
 
-    moveCamera(
-        bracket,
-        (root.clientWidth - camera.clientWidth * scale) / 2,
-        (root.clientHeight - camera.clientHeight * scale) / 2,
-        scale,
-        noAnim
-    );
+    const bracketOfInterest = document.querySelectorAll(`.bracket[data-bracket-type=${bracket}]`);
+    centerOnElements(bracketOfInterest, noAnim)
 }
 
 function showInProgress(){
     const root = document.getElementById("bracket-zone");
     var elementsOfInterest = root.querySelectorAll("div[data-round-status=\"in-progress\"]");
+
+    if (elementsOfInterest.length <= 0){
+        return;
+    }
+    centerOnElements(elementsOfInterest);
+}
+
+function showInProgressDE(bracket: string){
+    if (bracket == "both"){
+        showInProgress();
+        return;
+    }
+
+    const bracketOfInterest = document.querySelector(`.bracket[data-bracket-type=${bracket}]`);
+    var elementsOfInterest = bracketOfInterest.querySelectorAll("div[data-round-status=\"in-progress\"]");
+
     if (elementsOfInterest.length <= 0){
         return;
     }
@@ -45,7 +100,22 @@ function showFinished(){
     centerOnElements(elementsOfInterest);
 }
 
-function centerOnElements(elementsOfInterest: NodeListOf<Element>){
+function showFinishedDE(bracket: string){
+    if (bracket == "both"){
+        showFinished();
+        return;
+    }
+
+    const bracketOfInterest = document.querySelector(`.bracket[data-bracket-type=${bracket}]`);
+    var elementsOfInterest = bracketOfInterest.querySelectorAll("div[data-round-status=\"finished\"]");
+
+    if (elementsOfInterest.length <= 0){
+        return;
+    }
+    centerOnElements(elementsOfInterest);
+}
+
+function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boolean = false){
     const root = document.getElementById("bracket-zone");
     const camera = document.getElementById("camera");
     const bracket = camera.firstChild as HTMLElement;
@@ -72,18 +142,27 @@ function centerOnElements(elementsOfInterest: NodeListOf<Element>){
     const targetWidth = maxWidth - minWidth;
     const targetHeight = maxHeight - minHeight;
     var scale = 1;
-    if (targetWidth > root.clientWidth || targetWidth < root.clientWidth){
-        scale = Math.min(((root.clientWidth/targetWidth) * .85), 2);
+    console.log(targetWidth, root.clientWidth);
+    if (targetWidth > root.clientWidth){
+        scale = (root.clientWidth/targetWidth) * .98;
+        console.log("width fit");
     }
-    if (targetHeight > root.clientHeight || targetHeight < root.clientHeight){
-        scale = Math.min(((root.clientHeight/targetHeight) * .85), 2);
+    else {
+    // if (targetHeight < root.clientHeight){
+        scale = (root.clientHeight/targetHeight) * .98;
+        console.log("height fit");
+        if (targetWidth * scale > root.clientWidth){
+            scale = (root.clientWidth/targetWidth) * .98;
+            console.log("width fit 2");
+        }
     }
 
     moveCamera(
         bracket,
         (root.clientWidth - maxWidth*scale - minWidth*scale ) / 2,
         (root.clientHeight - maxHeight*scale - minHeight*scale) / 2,
-        scale
+        scale,
+        noAnim
     );
 }
 
@@ -107,12 +186,4 @@ function moveCamera(elim: HTMLElement, x: number, y: number, scale: number, inst
         duration: instant ? 0 : 1,
         ease: "power2.inOut"
     }, "<");
-}
-
-//for debug
-function setBound(x: number, y: number, w: number, h: number){
-    const bound = document.getElementById("bound");
-    bound.style.transform = `translate(${x}px, ${y}px)`
-    bound.style.width = w + "px";
-    bound.style.height = h + "px"
 }

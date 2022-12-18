@@ -51,7 +51,35 @@ label {
 }
 
 .controls > * {
-    margin-top: .5em;
+    margin-top: .5rem;
+}
+
+.divider:not(:first-child) {
+    margin-top: .75rem;
+}
+
+.divider::after {
+    content: '';
+    display: block;
+    position: relative;
+    width: -webkit-fill-available;
+    height: 1px;
+    background: black;
+}
+
+.update-button{
+    appearance: none;
+    border: grey 1px solid;
+    border-radius: .5em;
+    background-color: transparent;
+    font-size: 1em;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 500;
+    margin-top: .75rem;
+}
+.update-button:hover{
+    box-shadow: 0 0 8px rgba(0, 0, 255, 0.582);
+    cursor: pointer;
 }
 
 #bracket-zone{
@@ -64,10 +92,4 @@ label {
 
 #camera {
     width: fit-content;
-    /* position: absolute; */
 }
-/* 
-#bound {
-    background-color: #ff000067;
-    position: absolute;
-} */

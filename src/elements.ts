@@ -13,7 +13,9 @@ function getDoubleEliminationElement(matches: BracketMatch[]) : HTMLElement{
     }
 
     const winnersElement: HTMLElement = getEliminationElement(winnersMatches, "winners");
+    winnersElement.dataset.bracketType = "winners";
     const losersElement: HTMLElement = getEliminationElement(losersMatches, "losers");
+    losersElement.dataset.bracketType = "losers";
 
     element.appendChild(winnersElement);
     element.appendChild(losersElement);
@@ -24,6 +26,7 @@ function getDoubleEliminationElement(matches: BracketMatch[]) : HTMLElement{
 function getEliminationElement(matches: BracketMatch[], roundNaming?: "winners" | "losers") : HTMLElement {
     const element: HTMLElement = document.createElement("div");
     element.className = "elim-bracket-wrapper";
+    element.classList.add("bracket");
 
     const roundElims: HTMLElement[] = [];
     const roundsNum = Math.max(...matches.map(o => o.roundNumber));
@@ -125,6 +128,7 @@ function getEliminationStyleMatchElement(match: BracketMatch): HTMLElement {
 function getSwissElement(matches: BracketMatch[], round: number): HTMLElement {
     const element = document.createElement("div");
     element.className = "swiss-bracket-wrapper";
+    element.classList.add("bracket");
 
     for (var i = 0; i < matches.length; i++){
         if (matches[i].roundNumber == round){
