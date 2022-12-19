@@ -16,7 +16,7 @@ async function updateBracket(roundNum: number = 1){
     element.appendChild(camera);
 
     const bracket = brackets[parseInt((<HTMLSelectElement>select).value)];
-    const matches = await getBracketMatches(bracket);
+    const matches = bracket.type != "roundrobin" ? await getBracketMatches(bracket) : await getRoundRobinMatches(bracket);
 
     switch(bracket.type){
         case "elimination":
@@ -37,6 +37,12 @@ async function updateBracket(roundNum: number = 1){
                 addSwissRoundControls(matches[matches.length-1].roundNumber);
             }
             updateCamera("swiss", true);
+            break;
+        case "roundrobin":
+            camera.appendChild(getRoundRobinElement(matches, roundNum));
+            showControl("groups");
+            updateCamera("groups", true);
+            break;
     }
 }
 

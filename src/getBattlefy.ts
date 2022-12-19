@@ -77,3 +77,45 @@ async function getBracketMatches(bracket: BracketInfo) : Promise<BracketMatch[]>
         return matches;
     });
 }
+
+async function getRoundRobinMatches(bracket: BracketInfo) : Promise<BracketMatch[]> {
+    var matches: BracketMatch[] = [];
+
+    return fetch(`https://api.battlefy.com/stages/${bracket.id}`)
+    .then((response) => {
+        return response.json();
+    })
+    .then((bracketResponse) => {
+        var promises = [];
+        for (var i = 0; i < bracketResponse.groupIDs.length; i++){
+            promises.push(fetch(`https://api.battlefy.com/groups/${bracketResponse.groupIDs[i]}/matches`));
+        }
+
+        return Promise.all(promises)
+        .then((data) => Promise.all(data.map(data => {
+            return data.json();
+        })))
+        .then((groupResponse) => {
+            for (var i = 0; i < groupResponse.length; i++){
+                for (var j = 0; j < groupResponse[i].length; j++){
+                    const game = groupResponse[i][j];
+                    matches.push({
+                        id: game._id,
+                        topName: game?.top?.team?.name,
+                        topScore: game?.top?.score,
+                        topWinner: game?.top?.winner,
+                        bottomName: game?.bottom?.team?.name,
+                        bottomScore: game?.bottom?.score,
+                        bottomSeed: game?.bottom?.seedNumber,
+                        bottomWinner: game?.bottom?.winner,
+                        matchNumber: game.matchNumber,
+                        roundNumber: game.roundNumber,
+                        group: i + 1
+                    });
+                }
+            }
+
+            return matches;
+        });
+    });
+}

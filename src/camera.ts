@@ -29,7 +29,7 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "groups", 
 
         case "swiss":
             if(camFocusVal == "all"){
-                
+                showAll(noAnim);
             } else if (camFocusVal == "in-progress") {
 
             } else if (camFocusVal == "finished"){
@@ -39,7 +39,7 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "groups", 
 
         case "groups":
             if(camFocusVal == "all"){
-
+                showAll(noAnim);
             } else if (camFocusVal == "in-progress") {
 
             } else if (camFocusVal == "finished"){
@@ -59,11 +59,20 @@ function showAll(noAnim: boolean = false){
 function showAllDE(bracket: string, noAnim: boolean = false){
     if (bracket == "both"){
         showAll(noAnim);
+        deUpdateBracketVisability(bracket);
         return;
     }
 
-    const bracketOfInterest = document.querySelectorAll(`.bracket[data-bracket-type=${bracket}]`);
-    centerOnElements(bracketOfInterest, noAnim)
+    var bracketOfInterest;
+    if (bracket == "winners"){
+        bracketOfInterest = document.querySelectorAll(".bracket[data-bracket-type=winners]");
+        centerOnElements(bracketOfInterest, noAnim);
+        deUpdateBracketVisability(bracket);
+    } else if (bracket == "losers"){
+        bracketOfInterest = document.querySelectorAll(".bracket[data-bracket-type=losers]");
+        centerOnElements(bracketOfInterest, noAnim);
+        deUpdateBracketVisability(bracket);
+    }
 }
 
 function showInProgress(){
@@ -79,6 +88,7 @@ function showInProgress(){
 function showInProgressDE(bracket: string){
     if (bracket == "both"){
         showInProgress();
+        deUpdateBracketVisability(bracket);
         return;
     }
 
@@ -89,6 +99,7 @@ function showInProgressDE(bracket: string){
         return;
     }
     centerOnElements(elementsOfInterest);
+    deUpdateBracketVisability(bracket);
 }
 
 function showFinished(){
@@ -103,6 +114,7 @@ function showFinished(){
 function showFinishedDE(bracket: string){
     if (bracket == "both"){
         showFinished();
+        deUpdateBracketVisability(bracket);
         return;
     }
 
@@ -113,6 +125,7 @@ function showFinishedDE(bracket: string){
         return;
     }
     centerOnElements(elementsOfInterest);
+    deUpdateBracketVisability(bracket);
 }
 
 function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boolean = false){
@@ -122,9 +135,9 @@ function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boole
     bracket.style.transformOrigin = "top left";
 
     var maxWidth = 0;
-    var minWidth = root.clientWidth;
+    var minWidth = Number.MAX_SAFE_INTEGER;
     var maxHeight = 0;
-    var minHeight = root.clientHeight;
+    var minHeight = Number.MAX_SAFE_INTEGER;
 
     for (var i = 0; i < elementsOfInterest.length; i++){
         const elim = elementsOfInterest[i] as HTMLElement;
@@ -142,18 +155,23 @@ function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boole
     const targetWidth = maxWidth - minWidth;
     const targetHeight = maxHeight - minHeight;
     var scale = 1;
-    console.log(targetWidth, root.clientWidth);
+    
     if (targetWidth > root.clientWidth){
-        scale = (root.clientWidth/targetWidth) * .98;
-        console.log("width fit");
+        scale = (root.clientWidth / Math.max(targetWidth, 500)) * .97;
+        console.log("fit via width");
+
+        if (targetHeight * scale > root.clientHeight){
+            scale = (root.clientHeight / Math.max(targetHeight, 500)) * .97;
+            console.log("then fit via height");
+        }
     }
     else {
-    // if (targetHeight < root.clientHeight){
-        scale = (root.clientHeight/targetHeight) * .98;
-        console.log("height fit");
+        scale = (root.clientHeight / Math.max(targetHeight, 500)) * .97;
+        console.log("fit via height");
+        
         if (targetWidth * scale > root.clientWidth){
-            scale = (root.clientWidth/targetWidth) * .98;
-            console.log("width fit 2");
+            scale = (root.clientWidth / Math.max(targetWidth, 500)) * .97;
+            console.log("then fit via width");
         }
     }
 
@@ -178,12 +196,23 @@ function moveCamera(elim: HTMLElement, x: number, y: number, scale: number, inst
     tl.to(camera, {
         x: x,
         y: y,
-        duration: instant ? 0 : 1,
+        duration: instant ? 0 : 1.5,
         ease: "power2.inOut"
     })
     .to(elim, {
         scale: scale,
-        duration: instant ? 0 : 1,
+        duration: instant ? 0 : 1.5,
         ease: "power2.inOut"
+    }, "<");
+}
+
+function deUpdateBracketVisability(bracket: string) {
+    tl.to(".bracket[data-bracket-type=losers]", {
+        opacity: bracket != "winners" ? 1 : 0,
+        duration: 1
+    }, "<");
+    tl.to(".bracket[data-bracket-type=winners]", {
+        opacity: bracket != "losers" ? 1 : 0,
+        duration: 1
     }, "<");
 }

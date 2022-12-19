@@ -23,7 +23,7 @@ function updateBracket(roundNum = 1) {
         camera.style.transform = "translate(0px,0px)"; //this fixes a bug ???? LOL
         element.appendChild(camera);
         const bracket = brackets[parseInt(select.value)];
-        const matches = yield getBracketMatches(bracket);
+        const matches = bracket.type != "roundrobin" ? yield getBracketMatches(bracket) : yield getRoundRobinMatches(bracket);
         switch (bracket.type) {
             case "elimination":
                 if (bracket.style == "double") {
@@ -44,6 +44,12 @@ function updateBracket(roundNum = 1) {
                     addSwissRoundControls(matches[matches.length - 1].roundNumber);
                 }
                 updateCamera("swiss", true);
+                break;
+            case "roundrobin":
+                camera.appendChild(getRoundRobinElement(matches, roundNum));
+                showControl("groups");
+                updateCamera("groups", true);
+                break;
         }
     });
 }
@@ -120,6 +126,7 @@ function updateCamera(bracketType, noAnim = false) {
             break;
         case "swiss":
             if (camFocusVal == "all") {
+                showAll(noAnim);
             }
             else if (camFocusVal == "in-progress") {
             }
@@ -128,6 +135,7 @@ function updateCamera(bracketType, noAnim = false) {
             break;
         case "groups":
             if (camFocusVal == "all") {
+                showAll(noAnim);
             }
             else if (camFocusVal == "in-progress") {
             }
@@ -144,10 +152,20 @@ function showAll(noAnim = false) {
 function showAllDE(bracket, noAnim = false) {
     if (bracket == "both") {
         showAll(noAnim);
+        deUpdateBracketVisability(bracket);
         return;
     }
-    const bracketOfInterest = document.querySelectorAll(`.bracket[data-bracket-type=${bracket}]`);
-    centerOnElements(bracketOfInterest, noAnim);
+    var bracketOfInterest;
+    if (bracket == "winners") {
+        bracketOfInterest = document.querySelectorAll(".bracket[data-bracket-type=winners]");
+        centerOnElements(bracketOfInterest, noAnim);
+        deUpdateBracketVisability(bracket);
+    }
+    else if (bracket == "losers") {
+        bracketOfInterest = document.querySelectorAll(".bracket[data-bracket-type=losers]");
+        centerOnElements(bracketOfInterest, noAnim);
+        deUpdateBracketVisability(bracket);
+    }
 }
 function showInProgress() {
     const root = document.getElementById("bracket-zone");
@@ -160,6 +178,7 @@ function showInProgress() {
 function showInProgressDE(bracket) {
     if (bracket == "both") {
         showInProgress();
+        deUpdateBracketVisability(bracket);
         return;
     }
     const bracketOfInterest = document.querySelector(`.bracket[data-bracket-type=${bracket}]`);
@@ -168,6 +187,7 @@ function showInProgressDE(bracket) {
         return;
     }
     centerOnElements(elementsOfInterest);
+    deUpdateBracketVisability(bracket);
 }
 function showFinished() {
     const root = document.getElementById("bracket-zone");
@@ -180,6 +200,7 @@ function showFinished() {
 function showFinishedDE(bracket) {
     if (bracket == "both") {
         showFinished();
+        deUpdateBracketVisability(bracket);
         return;
     }
     const bracketOfInterest = document.querySelector(`.bracket[data-bracket-type=${bracket}]`);
@@ -188,6 +209,7 @@ function showFinishedDE(bracket) {
         return;
     }
     centerOnElements(elementsOfInterest);
+    deUpdateBracketVisability(bracket);
 }
 function centerOnElements(elementsOfInterest, noAnim = false) {
     const root = document.getElementById("bracket-zone");
@@ -195,9 +217,9 @@ function centerOnElements(elementsOfInterest, noAnim = false) {
     const bracket = camera.firstChild;
     bracket.style.transformOrigin = "top left";
     var maxWidth = 0;
-    var minWidth = root.clientWidth;
+    var minWidth = Number.MAX_SAFE_INTEGER;
     var maxHeight = 0;
-    var minHeight = root.clientHeight;
+    var minHeight = Number.MAX_SAFE_INTEGER;
     for (var i = 0; i < elementsOfInterest.length; i++) {
         const elim = elementsOfInterest[i];
         const pos = getPosOfElement(root, elim);
@@ -211,18 +233,20 @@ function centerOnElements(elementsOfInterest, noAnim = false) {
     const targetWidth = maxWidth - minWidth;
     const targetHeight = maxHeight - minHeight;
     var scale = 1;
-    console.log(targetWidth, root.clientWidth);
     if (targetWidth > root.clientWidth) {
-        scale = (root.clientWidth / targetWidth) * .98;
-        console.log("width fit");
+        scale = (root.clientWidth / Math.max(targetWidth, 500)) * .97;
+        console.log("fit via width");
+        if (targetHeight * scale > root.clientHeight) {
+            scale = (root.clientHeight / Math.max(targetHeight, 500)) * .97;
+            console.log("then fit via height");
+        }
     }
     else {
-        // if (targetHeight < root.clientHeight){
-        scale = (root.clientHeight / targetHeight) * .98;
-        console.log("height fit");
+        scale = (root.clientHeight / Math.max(targetHeight, 500)) * .97;
+        console.log("fit via height");
         if (targetWidth * scale > root.clientWidth) {
-            scale = (root.clientWidth / targetWidth) * .98;
-            console.log("width fit 2");
+            scale = (root.clientWidth / Math.max(targetWidth, 500)) * .97;
+            console.log("then fit via width");
         }
     }
     moveCamera(bracket, (root.clientWidth - maxWidth * scale - minWidth * scale) / 2, (root.clientHeight - maxHeight * scale - minHeight * scale) / 2, scale, noAnim);
@@ -238,13 +262,23 @@ function moveCamera(elim, x, y, scale, instant = false) {
     tl.to(camera, {
         x: x,
         y: y,
-        duration: instant ? 0 : 1,
+        duration: instant ? 0 : 1.5,
         ease: "power2.inOut"
     })
         .to(elim, {
         scale: scale,
-        duration: instant ? 0 : 1,
+        duration: instant ? 0 : 1.5,
         ease: "power2.inOut"
+    }, "<");
+}
+function deUpdateBracketVisability(bracket) {
+    tl.to(".bracket[data-bracket-type=losers]", {
+        opacity: bracket != "winners" ? 1 : 0,
+        duration: 1
+    }, "<");
+    tl.to(".bracket[data-bracket-type=winners]", {
+        opacity: bracket != "losers" ? 1 : 0,
+        duration: 1
     }, "<");
 }
 function getDoubleEliminationElement(matches) {
@@ -353,18 +387,50 @@ function getEliminationStyleMatchElement(match) {
 }
 function getSwissElement(matches, round) {
     const element = document.createElement("div");
-    element.className = "swiss-bracket-wrapper";
+    element.className = "group-bracket-wrapper";
     element.classList.add("bracket");
+    const header = document.createElement("div");
+    header.className = "group-header";
+    header.innerText = "Round " + round.toString();
+    element.appendChild(header);
     for (var i = 0; i < matches.length; i++) {
         if (matches[i].roundNumber == round) {
-            element.appendChild(getSwissStyleMatchElement(matches[i]));
+            element.appendChild(getGroupStyleMatchElement(matches[i]));
         }
     }
     return element;
 }
-function getSwissStyleMatchElement(match) {
+function getRoundRobinElement(matches, round) {
     const element = document.createElement("div");
-    element.className = "swiss-round-wrapper";
+    element.className = "roundrobin-bracket-wrapper";
+    element.classList.add("bracket");
+    console.log(matches, matches.length);
+    const groups = Array.apply(null, Array(matches[matches.length - 1].group)).map(function () { return []; });
+    console.log(groups);
+    for (var i = 0; i < matches.length; i++) {
+        if (matches[i].roundNumber == round) {
+            groups[matches[i].group - 1].push(getGroupStyleMatchElement(matches[i]));
+        }
+    }
+    for (var i = 0; i < groups.length; i++) {
+        const groupElim = document.createElement("div");
+        groupElim.className = "group-bracket-wrapper";
+        groupElim.classList.add("bracket");
+        const header = document.createElement("div");
+        header.className = "group-header";
+        header.innerText = "Group " + String.fromCharCode(65 + i);
+        ;
+        groupElim.appendChild(header);
+        for (var j = 0; j < groups[i].length; j++) {
+            groupElim.appendChild(groups[i][j]);
+        }
+        element.appendChild(groupElim);
+    }
+    return element;
+}
+function getGroupStyleMatchElement(match) {
+    const element = document.createElement("div");
+    element.className = "group-round-wrapper";
     if (match.topWinner || match.bottomWinner) {
         element.dataset.roundStatus = "finished";
     }
@@ -474,6 +540,47 @@ function getBracketMatches(bracket) {
                 matches.push(match);
             }
             return matches;
+        });
+    });
+}
+function getRoundRobinMatches(bracket) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var matches = [];
+        return fetch(`https://api.battlefy.com/stages/${bracket.id}`)
+            .then((response) => {
+            return response.json();
+        })
+            .then((bracketResponse) => {
+            var promises = [];
+            for (var i = 0; i < bracketResponse.groupIDs.length; i++) {
+                promises.push(fetch(`https://api.battlefy.com/groups/${bracketResponse.groupIDs[i]}/matches`));
+            }
+            return Promise.all(promises)
+                .then((data) => Promise.all(data.map(data => {
+                return data.json();
+            })))
+                .then((groupResponse) => {
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                for (var i = 0; i < groupResponse.length; i++) {
+                    for (var j = 0; j < groupResponse[i].length; j++) {
+                        const game = groupResponse[i][j];
+                        matches.push({
+                            id: game._id,
+                            topName: (_b = (_a = game === null || game === void 0 ? void 0 : game.top) === null || _a === void 0 ? void 0 : _a.team) === null || _b === void 0 ? void 0 : _b.name,
+                            topScore: (_c = game === null || game === void 0 ? void 0 : game.top) === null || _c === void 0 ? void 0 : _c.score,
+                            topWinner: (_d = game === null || game === void 0 ? void 0 : game.top) === null || _d === void 0 ? void 0 : _d.winner,
+                            bottomName: (_f = (_e = game === null || game === void 0 ? void 0 : game.bottom) === null || _e === void 0 ? void 0 : _e.team) === null || _f === void 0 ? void 0 : _f.name,
+                            bottomScore: (_g = game === null || game === void 0 ? void 0 : game.bottom) === null || _g === void 0 ? void 0 : _g.score,
+                            bottomSeed: (_h = game === null || game === void 0 ? void 0 : game.bottom) === null || _h === void 0 ? void 0 : _h.seedNumber,
+                            bottomWinner: (_j = game === null || game === void 0 ? void 0 : game.bottom) === null || _j === void 0 ? void 0 : _j.winner,
+                            matchNumber: game.matchNumber,
+                            roundNumber: game.roundNumber,
+                            group: i + 1
+                        });
+                    }
+                }
+                return matches;
+            });
         });
     });
 }

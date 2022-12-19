@@ -127,21 +127,61 @@ function getEliminationStyleMatchElement(match: BracketMatch): HTMLElement {
 
 function getSwissElement(matches: BracketMatch[], round: number): HTMLElement {
     const element = document.createElement("div");
-    element.className = "swiss-bracket-wrapper";
+    element.className = "group-bracket-wrapper";
     element.classList.add("bracket");
+
+    const header = document.createElement("div");
+    header.className = "group-header";
+    header.innerText = "Round " + round.toString();
+    element.appendChild(header);
 
     for (var i = 0; i < matches.length; i++){
         if (matches[i].roundNumber == round){
-            element.appendChild(getSwissStyleMatchElement(matches[i]));
+            element.appendChild(getGroupStyleMatchElement(matches[i]));
         }
     }
 
     return element;
 }
 
-function getSwissStyleMatchElement(match: BracketMatch): HTMLElement {
+function getRoundRobinElement(matches: BracketMatch[], round: number): HTMLElement {
     const element = document.createElement("div");
-    element.className = "swiss-round-wrapper";
+    element.className = "roundrobin-bracket-wrapper";
+    element.classList.add("bracket");
+    console.log(matches, matches.length);
+
+    const groups = Array.apply(null, Array(matches[matches.length-1].group)).map(function () { return [] });
+    console.log(groups);
+
+    for (var i = 0; i < matches.length; i++){
+        if (matches[i].roundNumber == round){
+            groups[matches[i].group-1].push(getGroupStyleMatchElement(matches[i]));
+        }
+    }
+
+    for (var i = 0; i < groups.length; i++){
+        const groupElim = document.createElement("div");
+        groupElim.className = "group-bracket-wrapper";
+        groupElim.classList.add("bracket");
+
+        const header = document.createElement("div")
+        header.className = "group-header";
+        header.innerText = "Group " + String.fromCharCode(65 + i);;
+        groupElim.appendChild(header);
+
+        for (var j = 0; j < groups[i].length; j++){
+            groupElim.appendChild(groups[i][j]);
+        }
+
+        element.appendChild(groupElim);
+    }
+
+    return element;
+}
+
+function getGroupStyleMatchElement(match: BracketMatch): HTMLElement {
+    const element = document.createElement("div");
+    element.className = "group-round-wrapper";
 
     if (match.topWinner || match.bottomWinner){
         element.dataset.roundStatus = "finished";

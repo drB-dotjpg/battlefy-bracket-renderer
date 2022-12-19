@@ -20,4 +20,5 @@ interface BracketMatch {
     matchNumber: number;
     roundNumber: number;
     type?: string;
+    group?: number;
 }

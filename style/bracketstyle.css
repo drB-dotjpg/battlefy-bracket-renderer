@@ -24,8 +24,8 @@
     flex-wrap: nowrap;
     background-color: whitesmoke;
     border-radius: .5em;
-    margin: .5em 0;
     font-size: .8em;
+    margin: .08em 0;
 }
 
 .elim-round-wrapper > .team-wrapper {
@@ -45,7 +45,7 @@
 .elim-round-wrapper > .team-wrapper > .score {
     font-weight: 700;
     font-size: 1.2em;
-    padding: .1em .2em;
+    padding: 0 .2em;
     border-radius: .25em;
     margin: .05em .2em;
     background-color: rgba(0, 0, 0, 0.068);
@@ -53,12 +53,19 @@
 
 
 
-.swiss-bracket-wrapper {
+.group-bracket-wrapper {
     display: flex;
     flex-direction: column;
 }
 
-.swiss-round-wrapper {
+.group-bracket-wrapper > .group-header {
+    color: white;
+    text-align: center;
+    font-size: 1.4em;
+    margin-bottom: .25rem;
+}
+
+.group-round-wrapper {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -70,23 +77,29 @@
     padding: .1em .2em;
 }
 
-.swiss-round-wrapper > .team-wrapper {
+.group-round-wrapper > .team-wrapper {
     display: flex;
     flex-direction: row;
+    align-items: center;
 }
 
-.swiss-round-wrapper > .team-wrapper:nth-child(2) {
+.group-round-wrapper > .team-wrapper:nth-child(2) {
     display: flex;
     flex-direction: row-reverse;
 }
 
-.swiss-round-wrapper > .team-wrapper:first-child > .team {
+.group-round-wrapper > .team-wrapper > .team {
+    width: 250px;
+}
+
+.group-round-wrapper > .team-wrapper:first-child > .team {
     text-align: right;
 }
 
-.swiss-round-wrapper > .team-wrapper > .score {
-    margin: 0 .5em;
+.group-round-wrapper > .team-wrapper > .score {
+    margin: 0 10px;
     width: 25px;
+    height: fit-content;
     text-align: center;
     background-color: rgba(0, 0, 0, 0.068);
 }
