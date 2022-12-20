@@ -1,4 +1,4 @@
-# Bracket scene design Doc
+# Bracket Scene Design Doc
 
 ## Control Panel UI
 |Item|UI component|Description|
@@ -21,7 +21,7 @@ You can get bracket data by accessing the `stages` key
 https://api.battlefy.com/stages/ {Bracket ID} /matches
 ```
 
-### To get specific bracket data for groups:
+#### To get specific bracket data for groups:
 First you need an ID for each group in the bracket, use the following to get it:
 ```
 https://api.battlefy.com/stages/ {Bracket ID}
