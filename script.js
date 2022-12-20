@@ -9,49 +9,53 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 const select = document.getElementById("bracket-select");
 var brackets;
-select.addEventListener("change", function () {
+var currentBracket = undefined;
+function updateBracket() {
     return __awaiter(this, void 0, void 0, function* () {
-        yield updateBracket();
-    });
-});
-function updateBracket(roundNum = 1) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const element = document.getElementById("bracket-zone");
-        element.innerHTML = "";
-        const camera = document.createElement("div");
-        camera.id = "camera";
-        camera.style.transform = "translate(0px,0px)"; //this fixes a bug ???? LOL
-        element.appendChild(camera);
+        const camera = document.getElementById("camera");
+        const zoom = document.getElementById("zoom");
         const bracket = brackets[parseInt(select.value)];
         const matches = bracket.type != "roundrobin" ? yield getBracketMatches(bracket) : yield getRoundRobinMatches(bracket);
+        const animate = !areBracketsEqual(bracket, currentBracket);
+        currentBracket = bracket;
+        if (animate) {
+            camera.style.transform = "translate(0px,0px)";
+            zoom.style.transform = "scale(0,0)";
+        }
+        zoom.innerHTML = '';
         switch (bracket.type) {
             case "elimination":
                 if (bracket.style == "double") {
-                    camera.appendChild(getDoubleEliminationElement(matches));
+                    zoom.appendChild(getDoubleEliminationElement(matches));
                     showControl("double-elim");
-                    updateCamera("double-elim", true);
+                    updateCamera("double-elim", animate);
                 }
                 else {
-                    camera.appendChild(getEliminationElement(matches));
+                    zoom.appendChild(getEliminationElement(matches));
                     showControl("elim");
-                    updateCamera("elim", true);
+                    updateCamera("elim", animate);
                 }
                 break;
             case "swiss":
-                camera.appendChild(getSwissElement(matches, roundNum));
-                showControl("swiss");
-                if (roundNum == 1) {
+                var roundNum = parseInt(swissRound.value);
+                console.log(roundNum);
+                if (isNaN(roundNum)) {
                     addSwissRoundControls(matches[matches.length - 1].roundNumber);
+                    roundNum = 1;
                 }
-                updateCamera("swiss", true);
+                zoom.appendChild(getSwissElement(matches, roundNum));
+                showControl("swiss");
+                updateCamera("swiss", animate);
                 break;
             case "roundrobin":
-                camera.appendChild(getRoundRobinElement(matches, roundNum));
-                showControl("roundrobin");
-                if (roundNum == 1) {
+                var roundNum = parseInt(roundRobinRound.value);
+                if (isNaN(roundNum)) {
                     addRoundRobinRoundControls(matches[matches.length - 1].roundNumber);
+                    roundNum = 1;
                 }
-                updateCamera("roundrobin", true);
+                zoom.appendChild(getRoundRobinElement(matches, roundNum));
+                showControl("roundrobin");
+                updateCamera("roundrobin", animate);
                 break;
         }
     });
@@ -60,7 +64,6 @@ function searchForBrackets() {
     return __awaiter(this, void 0, void 0, function* () {
         const inputVal = document.getElementById('input').value;
         select.innerHTML = "";
-        document.getElementById("bracket-zone").innerHTML = "";
         brackets = yield getAllBracketInfo(inputVal);
         for (var i = 0; i < brackets.length; i++) {
             const option = document.createElement("option");
@@ -70,6 +73,7 @@ function searchForBrackets() {
         }
         select.dispatchEvent(new Event('change'));
         gsap.fromTo("#options-pt2", { display: "block", opacity: 0, scale: .75 }, { opacity: 1, scale: 1 });
+        updateBracket();
     });
 }
 function showControl(type) {
@@ -96,7 +100,7 @@ function addSwissRoundControls(rounds) {
 const swissRound = document.getElementById("swiss-round-select");
 swissRound.addEventListener("change", function () {
     return __awaiter(this, void 0, void 0, function* () {
-        yield updateBracket(parseInt(swissRound.value));
+        yield updateBracket();
     });
 });
 function addRoundRobinRoundControls(rounds) {
@@ -112,16 +116,23 @@ function addRoundRobinRoundControls(rounds) {
 const roundRobinRound = document.getElementById("roundrobin-round-select");
 roundRobinRound.addEventListener("change", function () {
     return __awaiter(this, void 0, void 0, function* () {
-        yield updateBracket(parseInt(roundRobinRound.value));
+        yield updateBracket();
     });
 });
+function areBracketsEqual(bracket1, bracket2) {
+    if (bracket1 === undefined || bracket2 === undefined) {
+        return false;
+    }
+    return bracket1.id == bracket2.id;
+}
 const tl = gsap.timeline();
-function updateCamera(bracketType, noAnim = false) {
+function updateCamera(bracketType, animIn = false) {
     var camFocusVal = document.querySelector('input[name="cam-focus"]:checked').value;
+    console.log(animIn);
     switch (bracketType) {
         case "elim":
             if (camFocusVal == "all") {
-                showAll(noAnim);
+                showAll(animIn);
             }
             else if (camFocusVal == "in-progress") {
                 showInProgress();
@@ -133,7 +144,7 @@ function updateCamera(bracketType, noAnim = false) {
         case "double-elim":
             const bracketFocusVal = document.querySelector('input[name="de-bracket-cam"]:checked').value;
             if (camFocusVal == "all") {
-                showAllDE(bracketFocusVal, noAnim);
+                showAllDE(bracketFocusVal, animIn);
             }
             else if (camFocusVal == "in-progress") {
                 showInProgressDE(bracketFocusVal);
@@ -145,18 +156,8 @@ function updateCamera(bracketType, noAnim = false) {
         case "swiss":
             sortGroups();
             if (camFocusVal == "all") {
-                showAll(noAnim);
-            }
-            else if (camFocusVal == "in-progress") {
-            }
-            else if (camFocusVal == "finished") {
-            }
-            break;
-        case "roundrobin":
-            sortGroups();
-            if (camFocusVal == "all") {
                 groupRoundVisibility("all");
-                showAll(true);
+                showAll(animIn);
             }
             else if (camFocusVal == "in-progress") {
                 groupRoundVisibility("in-progress");
@@ -165,6 +166,38 @@ function updateCamera(bracketType, noAnim = false) {
                 groupRoundVisibility("finished");
             }
             break;
+        case "roundrobin":
+            sortGroups();
+            if (camFocusVal == "all") {
+                groupRoundVisibility("all");
+                showAll(animIn);
+            }
+            else if (camFocusVal == "in-progress") {
+                groupRoundVisibility("in-progress");
+            }
+            else if (camFocusVal == "finished") {
+                groupRoundVisibility("finished");
+            }
+            break;
+    }
+    if (animIn) {
+        tl.fromTo([".group-round-wrapper", ".elim-round-wrapper"], {
+            opacity: 0,
+            scale: .8
+        }, {
+            opacity: 1,
+            scale: 1,
+            ease: "power2.out",
+            duration: .5,
+            stagger: .025
+        })
+            .fromTo([".group-header", ".grid-header"], {
+            opacity: 0
+        }, {
+            opacity: 1,
+            ease: "power2.out",
+            duration: 1
+        }, "<");
     }
 }
 function showAll(noAnim = false) {
@@ -236,9 +269,6 @@ function showFinishedDE(bracket) {
 }
 function centerOnElements(elementsOfInterest, noAnim = false) {
     const root = document.getElementById("bracket-zone");
-    const camera = document.getElementById("camera");
-    const bracket = camera.firstChild;
-    bracket.style.transformOrigin = "top left";
     var maxWidth = 0;
     var minWidth = Number.MAX_SAFE_INTEGER;
     var maxHeight = 0;
@@ -272,7 +302,7 @@ function centerOnElements(elementsOfInterest, noAnim = false) {
             // console.log("then fit via width");
         }
     }
-    moveCamera(bracket, (root.clientWidth - maxWidth * scale - minWidth * scale) / 2, (root.clientHeight - maxHeight * scale - minHeight * scale) / 2, scale, noAnim);
+    moveCamera((root.clientWidth - maxWidth * scale - minWidth * scale) / 2, (root.clientHeight - maxHeight * scale - minHeight * scale) / 2, scale, noAnim);
 }
 function getPosOfElement(root, elim) {
     return [
@@ -280,15 +310,14 @@ function getPosOfElement(root, elim) {
         [elim.offsetTop, elim.offsetTop + elim.clientHeight]
     ];
 }
-function moveCamera(elim, x, y, scale, instant = false) {
-    const camera = document.getElementById("camera");
-    tl.to(camera, {
+function moveCamera(x, y, scale, instant = false) {
+    tl.to("#camera", {
         x: x,
         y: y,
         duration: instant ? 0 : 1.5,
         ease: "power2.inOut"
     })
-        .to(elim, {
+        .to("#zoom", {
         scale: scale,
         duration: instant ? 0 : 1.5,
         ease: "power2.inOut"

@@ -1,13 +1,14 @@
 declare var gsap: any;
 const tl = gsap.timeline();
 
-function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobin", noAnim: boolean = false){
+function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobin", animIn: boolean = false){
     var camFocusVal = (document.querySelector('input[name="cam-focus"]:checked') as HTMLSelectElement).value;
+    console.log(animIn);
 
     switch(bracketType){
         case "elim":
             if(camFocusVal == "all"){
-                showAll(noAnim);
+                showAll(animIn);
             } else if (camFocusVal == "in-progress") {
                 showInProgress();
             } else if (camFocusVal == "finished"){
@@ -18,7 +19,7 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobi
         case "double-elim":
             const bracketFocusVal = (document.querySelector('input[name="de-bracket-cam"]:checked') as HTMLSelectElement).value;
             if(camFocusVal == "all"){
-                showAllDE(bracketFocusVal, noAnim);
+                showAllDE(bracketFocusVal, animIn);
             } else if (camFocusVal == "in-progress") {
                 showInProgressDE(bracketFocusVal);
             } else if (camFocusVal == "finished"){
@@ -29,11 +30,12 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobi
         case "swiss":
             sortGroups();
             if(camFocusVal == "all"){
-                showAll(noAnim);
+                groupRoundVisibility("all");
+                showAll(animIn);
             } else if (camFocusVal == "in-progress") {
-
+                groupRoundVisibility("in-progress");
             } else if (camFocusVal == "finished"){
-                
+                groupRoundVisibility("finished");
             }
         break;
 
@@ -41,13 +43,33 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobi
             sortGroups();
             if(camFocusVal == "all"){
                 groupRoundVisibility("all");
-                showAll(true);
+                showAll(animIn);
             } else if (camFocusVal == "in-progress") {
                 groupRoundVisibility("in-progress");
             } else if (camFocusVal == "finished"){
                 groupRoundVisibility("finished");
             }
         break;
+    }
+
+    if (animIn){
+        tl.fromTo([".group-round-wrapper", ".elim-round-wrapper"], {
+            opacity: 0,
+            scale: .8
+        }, {
+            opacity: 1,
+            scale: 1,
+            ease: "power2.out",
+            duration: .5,
+            stagger: .025
+        })
+        .fromTo([".group-header", ".grid-header"], {
+            opacity: 0
+        }, {
+            opacity: 1,
+            ease: "power2.out",
+            duration: 1
+        }, "<");
     }
 }
 
@@ -132,9 +154,6 @@ function showFinishedDE(bracket: string){
 
 function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boolean = false){
     const root = document.getElementById("bracket-zone");
-    const camera = document.getElementById("camera");
-    const bracket = camera.firstChild as HTMLElement;
-    bracket.style.transformOrigin = "top left";
 
     var maxWidth = 0;
     var minWidth = Number.MAX_SAFE_INTEGER;
@@ -178,7 +197,6 @@ function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boole
     }
 
     moveCamera(
-        bracket,
         (root.clientWidth - maxWidth*scale - minWidth*scale ) / 2,
         (root.clientHeight - maxHeight*scale - minHeight*scale) / 2,
         scale,
@@ -193,15 +211,14 @@ function getPosOfElement(root: HTMLElement, elim: HTMLElement) : number[][] {
     ];
 }
 
-function moveCamera(elim: HTMLElement, x: number, y: number, scale: number, instant: boolean = false){
-    const camera = document.getElementById("camera");
-    tl.to(camera, {
+function moveCamera(x: number, y: number, scale: number, instant: boolean = false){
+    tl.to("#camera", {
         x: x,
         y: y,
         duration: instant ? 0 : 1.5,
         ease: "power2.inOut"
     })
-    .to(elim, {
+    .to("#zoom", {
         scale: scale,
         duration: instant ? 0 : 1.5,
         ease: "power2.inOut"

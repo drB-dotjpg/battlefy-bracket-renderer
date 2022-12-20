@@ -2,49 +2,59 @@ declare var gsap: any;
 
 const select = document.getElementById("bracket-select");
 var brackets : BracketInfo[];
+var currentBracket: BracketInfo = undefined;
 
-select.addEventListener("change", async function() {
-    await updateBracket();
-});
-
-async function updateBracket(roundNum: number = 1){
-    const element = document.getElementById("bracket-zone");
-    element.innerHTML = "";
-    const camera = document.createElement("div");
-    camera.id = "camera";
-    camera.style.transform = "translate(0px,0px)"; //this fixes a bug ???? LOL
-    element.appendChild(camera);
+async function updateBracket(){
+    const camera = document.getElementById("camera");
+    const zoom = document.getElementById("zoom");
 
     const bracket = brackets[parseInt((<HTMLSelectElement>select).value)];
     const matches = bracket.type != "roundrobin" ? await getBracketMatches(bracket) : await getRoundRobinMatches(bracket);
 
+    const animate = !areBracketsEqual(bracket, currentBracket);
+    currentBracket = bracket;
+
+    if (animate){
+        camera.style.transform = "translate(0px,0px)";
+        zoom.style.transform = "scale(0,0)";
+    }
+
+    zoom.innerHTML = '';
+
     switch(bracket.type){
         case "elimination":
             if (bracket.style == "double"){
-                camera.appendChild(getDoubleEliminationElement(matches));
+                zoom.appendChild(getDoubleEliminationElement(matches));
                 showControl("double-elim");
-                updateCamera("double-elim", true);
+                updateCamera("double-elim", animate);
             } else {
-                camera.appendChild(getEliminationElement(matches));
+                zoom.appendChild(getEliminationElement(matches));
                 showControl("elim");
-                updateCamera("elim", true)
+                updateCamera("elim", animate)
             }
             break;
         case "swiss":
-            camera.appendChild(getSwissElement(matches, roundNum));
-            showControl("swiss");
-            if (roundNum == 1){
+            var roundNum = parseInt(swissRound.value);
+            console.log(roundNum);
+            if (isNaN(roundNum)){
                 addSwissRoundControls(matches[matches.length-1].roundNumber);
+                roundNum = 1;
             }
-            updateCamera("swiss", true);
+
+            zoom.appendChild(getSwissElement(matches, roundNum));
+            showControl("swiss");
+            updateCamera("swiss", animate);
             break;
         case "roundrobin":
-            camera.appendChild(getRoundRobinElement(matches, roundNum));
-            showControl("roundrobin");
-            if (roundNum == 1){
+            var roundNum = parseInt(roundRobinRound.value);
+            if (isNaN(roundNum)){
                 addRoundRobinRoundControls(matches[matches.length-1].roundNumber);
+                roundNum = 1;
             }
-            updateCamera("roundrobin", true);
+
+            zoom.appendChild(getRoundRobinElement(matches, roundNum));
+            showControl("roundrobin");
+            updateCamera("roundrobin", animate);
             break;
     }
 }
@@ -52,8 +62,6 @@ async function updateBracket(roundNum: number = 1){
 async function searchForBrackets(){
     const inputVal = (<HTMLInputElement>document.getElementById('input')).value;
     select.innerHTML = "";
-
-    document.getElementById("bracket-zone").innerHTML = "";
         
     brackets = await getAllBracketInfo(inputVal);
     for (var i = 0; i < brackets.length; i++){
@@ -66,6 +74,7 @@ async function searchForBrackets(){
     select.dispatchEvent(new Event('change'));
 
     gsap.fromTo("#options-pt2", {display: "block", opacity: 0, scale: .75}, {opacity: 1, scale: 1});
+    updateBracket();
 }
 
 function showControl(type: "elim" | "double-elim" | "swiss" | "roundrobin"){
@@ -92,7 +101,7 @@ function addSwissRoundControls(rounds: number){
 
 const swissRound = document.getElementById("swiss-round-select") as HTMLSelectElement;
 swissRound.addEventListener("change", async function(){
-    await updateBracket(parseInt(swissRound.value))
+    await updateBracket();
 });
 
 function addRoundRobinRoundControls(rounds: number){
@@ -108,5 +117,12 @@ function addRoundRobinRoundControls(rounds: number){
 
 const roundRobinRound = document.getElementById("roundrobin-round-select") as HTMLSelectElement;
 roundRobinRound.addEventListener("change", async function(){
-    await updateBracket(parseInt(roundRobinRound.value))
+    await updateBracket();
 });
+
+function areBracketsEqual(bracket1: BracketInfo, bracket2: BracketInfo){
+    if (bracket1 === undefined || bracket2 === undefined){
+        return false;
+    }
+    return bracket1.id == bracket2.id;
+}

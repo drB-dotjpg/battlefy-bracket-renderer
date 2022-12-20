@@ -37,7 +37,7 @@
     </div>
 
     <div class="controls" id="controls-elim">
-        <button class="update-button" onclick="updateCamera('elim')">Update</button>
+        <button class="update-button" onclick="updateBracket()">Update</button>
     </div>
 
     <div class="controls" id="controls-double-elim">
@@ -51,27 +51,31 @@
         <label for="losers">Losers
             <input type="radio" name="de-bracket-cam" value="losers">
         </label>
-        <button class="update-button" onclick="updateCamera('double-elim')">Update</button>
+        <button class="update-button" onclick="updateBracket()">Update</button>
     </div>
 
     <div class="controls" id="controls-swiss">
         <label for="swiss-round-select"> Round
             <select id="swiss-round-select" name="swiss-round-select"></select>
         </label>
-        <button class="update-button" onclick="updateCamera('groups')">Update</button>
+        <button class="update-button" onclick="updateBracket()">Update</button>
     </div>
 
     <div class="controls" id="controls-roundrobin">
         <label for="roundrobin-round-select"> Round
             <select id="roundrobin-round-select" name="roundrobin-round-select"></select>
         </label>
-        <button class="update-button" onclick="updateCamera('roundrobin')">Update</button>
+        <button class="update-button" onclick="updateBracket()">Update</button>
     </div>
 
 </div>
 
 <div id="bracket-zone">
-    
+    <div id="camera">
+        <div id="zoom" style="transform-origin: top left;">
+
+        </div>
+    </div>
 </div>
 
 </body>

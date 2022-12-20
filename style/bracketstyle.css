@@ -133,5 +133,5 @@ div[data-round-status="in-progress"]{
 }
 
 div[data-round-status="not-started"]{
-    opacity: .6;
+    background: #cfcfcf;
 }
