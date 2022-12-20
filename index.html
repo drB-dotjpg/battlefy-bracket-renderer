@@ -15,7 +15,7 @@
 
 <div class="options-wrapper">
     <div style="white-space: nowrap;">Battlefy Tourney URL: </div>
-    <input type="text" id="input" value="https://battlefy.com/inkling-performance-labs/swim-or-sink-92/6380629e9286e222a5790cfa/info?infoTab=details">
+    <input type="text" id="input" value="https://battlefy.com/jpgs-questionable-tournaments/test/6398b7ad34bf4f70da18409b/info?infoTab=details">
     <button onclick="searchForBrackets()">Search</button>
 </div>
 <div class="controls-wrapper" id="options-pt2" style="display: none;">
@@ -58,7 +58,14 @@
         <label for="swiss-round-select"> Round
             <select id="swiss-round-select" name="swiss-round-select"></select>
         </label>
-        <button class="update-button" onclick="updateCamera('swiss')">Update</button>
+        <button class="update-button" onclick="updateCamera('groups')">Update</button>
+    </div>
+
+    <div class="controls" id="controls-roundrobin">
+        <label for="roundrobin-round-select"> Round
+            <select id="roundrobin-round-select" name="roundrobin-round-select"></select>
+        </label>
+        <button class="update-button" onclick="updateCamera('roundrobin')">Update</button>
     </div>
 
 </div>

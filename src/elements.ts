@@ -148,10 +148,10 @@ function getRoundRobinElement(matches: BracketMatch[], round: number): HTMLEleme
     const element = document.createElement("div");
     element.className = "roundrobin-bracket-wrapper";
     element.classList.add("bracket");
-    console.log(matches, matches.length);
+    // console.log(matches, matches.length);
 
     const groups = Array.apply(null, Array(matches[matches.length-1].group)).map(function () { return [] });
-    console.log(groups);
+    // console.log(groups);
 
     for (var i = 0; i < matches.length; i++){
         if (matches[i].roundNumber == round){

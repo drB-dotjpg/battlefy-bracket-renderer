@@ -40,8 +40,11 @@ async function updateBracket(roundNum: number = 1){
             break;
         case "roundrobin":
             camera.appendChild(getRoundRobinElement(matches, roundNum));
-            showControl("groups");
-            updateCamera("groups", true);
+            showControl("roundrobin");
+            if (roundNum == 1){
+                addRoundRobinRoundControls(matches[matches.length-1].roundNumber);
+            }
+            updateCamera("roundrobin", true);
             break;
     }
 }
@@ -65,7 +68,7 @@ async function searchForBrackets(){
     gsap.fromTo("#options-pt2", {display: "block", opacity: 0, scale: .75}, {opacity: 1, scale: 1});
 }
 
-function showControl(type: "elim" | "double-elim" | "swiss" | "groups"){
+function showControl(type: "elim" | "double-elim" | "swiss" | "roundrobin"){
     const allControls = document.querySelectorAll(".controls");
     for (var i = 0; i < allControls.length; i++){
         if (allControls[i].id == "controls-" + type || allControls[i].id == "cam-controls"){
@@ -90,4 +93,20 @@ function addSwissRoundControls(rounds: number){
 const swissRound = document.getElementById("swiss-round-select") as HTMLSelectElement;
 swissRound.addEventListener("change", async function(){
     await updateBracket(parseInt(swissRound.value))
+});
+
+function addRoundRobinRoundControls(rounds: number){
+    const selector = document.getElementById("roundrobin-round-select");
+    selector.innerHTML = '';
+    for (var i = 0; i < rounds; i++){
+        const option = document.createElement("option");
+        option.value = (i+1).toString();
+        option.innerText = (i+1).toString();
+        selector.appendChild(option);
+    }
+}
+
+const roundRobinRound = document.getElementById("roundrobin-round-select") as HTMLSelectElement;
+roundRobinRound.addEventListener("change", async function(){
+    await updateBracket(parseInt(roundRobinRound.value))
 });

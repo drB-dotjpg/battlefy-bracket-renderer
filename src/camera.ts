@@ -1,10 +1,9 @@
 declare var gsap: any;
 const tl = gsap.timeline();
 
-function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "groups", noAnim: boolean = false){
+function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobin", noAnim: boolean = false){
     var camFocusVal = (document.querySelector('input[name="cam-focus"]:checked') as HTMLSelectElement).value;
 
-    //i hope you like nested code (remember this is just a prototype!)
     switch(bracketType){
         case "elim":
             if(camFocusVal == "all"){
@@ -28,6 +27,7 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "groups", 
         break;
 
         case "swiss":
+            sortGroups();
             if(camFocusVal == "all"){
                 showAll(noAnim);
             } else if (camFocusVal == "in-progress") {
@@ -37,13 +37,15 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "groups", 
             }
         break;
 
-        case "groups":
+        case "roundrobin":
+            sortGroups();
             if(camFocusVal == "all"){
-                showAll(noAnim);
+                groupRoundVisibility("all");
+                showAll(true);
             } else if (camFocusVal == "in-progress") {
-
+                groupRoundVisibility("in-progress");
             } else if (camFocusVal == "finished"){
-                
+                groupRoundVisibility("finished");
             }
         break;
     }
@@ -142,7 +144,7 @@ function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boole
     for (var i = 0; i < elementsOfInterest.length; i++){
         const elim = elementsOfInterest[i] as HTMLElement;
         const pos = getPosOfElement(root, elim);
-        console.log(elementsOfInterest[i], pos);
+        // console.log(elementsOfInterest[i], pos);
 
         maxWidth = Math.max(...pos[0], maxWidth);
         minWidth = Math.min(...pos[0], minWidth);
@@ -150,7 +152,7 @@ function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boole
         minHeight = Math.min(...pos[1], minHeight);
     }
 
-    console.log(maxWidth, minWidth, maxHeight, minHeight);
+    // console.log(maxWidth, minWidth, maxHeight, minHeight);
 
     const targetWidth = maxWidth - minWidth;
     const targetHeight = maxHeight - minHeight;
@@ -158,20 +160,20 @@ function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boole
     
     if (targetWidth > root.clientWidth){
         scale = (root.clientWidth / Math.max(targetWidth, 500)) * .97;
-        console.log("fit via width");
+        // console.log("fit via width");
 
         if (targetHeight * scale > root.clientHeight){
             scale = (root.clientHeight / Math.max(targetHeight, 500)) * .97;
-            console.log("then fit via height");
+            // console.log("then fit via height");
         }
     }
     else {
         scale = (root.clientHeight / Math.max(targetHeight, 500)) * .97;
-        console.log("fit via height");
+        // console.log("fit via height");
         
         if (targetWidth * scale > root.clientWidth){
             scale = (root.clientWidth / Math.max(targetWidth, 500)) * .97;
-            console.log("then fit via width");
+            // console.log("then fit via width");
         }
     }
 
@@ -215,4 +217,54 @@ function deUpdateBracketVisability(bracket: string) {
         opacity: bracket != "losers" ? 1 : 0,
         duration: 1
     }, "<");
+}
+
+function sortGroups(){
+    function comparator(a: HTMLElement, b: HTMLElement) {
+        if (a.dataset.roundStatus == "in-progress" && b.dataset.roundStatus != "in-progress"){
+            return 1;
+        } if (a.dataset.roundStatus == b.dataset.roundStatus) { 
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+
+    const groups = document.querySelectorAll(".group-bracket-wrapper");
+    for (var i = 0; i < groups.length; i++){
+        const rounds = groups[i].querySelectorAll("[data-round-status]");
+        const roundsSorted = Array.from(rounds).sort(comparator);
+        roundsSorted.forEach(e => groups[i].appendChild(e));
+    }
+}
+
+function groupRoundVisibility(focus: "all" | "in-progress" | "finished"){
+    switch (focus) {
+        case "all":
+            gsap.to("[data-round-status]", {
+                duration: .25,
+                opacity: 1
+            });
+            break;
+        case "in-progress":
+            gsap.to("[data-round-status=\"in-progress\"]", {
+                duration: .25,
+                opacity: 1
+            })
+            gsap.to("[data-round-status=\"finished\"]", {
+                duration: .25,
+                opacity: .4
+            });
+            break;
+        case "finished":
+            gsap.to("[data-round-status=\"finished\"]", {
+                duration: .25,
+                opacity: 1
+            })
+            gsap.to("[data-round-status=\"in-progress\"]", {
+                duration: .25,
+                opacity: .4
+            });
+            break;
+    }
 }

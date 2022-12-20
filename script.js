@@ -47,8 +47,11 @@ function updateBracket(roundNum = 1) {
                 break;
             case "roundrobin":
                 camera.appendChild(getRoundRobinElement(matches, roundNum));
-                showControl("groups");
-                updateCamera("groups", true);
+                showControl("roundrobin");
+                if (roundNum == 1) {
+                    addRoundRobinRoundControls(matches[matches.length - 1].roundNumber);
+                }
+                updateCamera("roundrobin", true);
                 break;
         }
     });
@@ -96,10 +99,25 @@ swissRound.addEventListener("change", function () {
         yield updateBracket(parseInt(swissRound.value));
     });
 });
+function addRoundRobinRoundControls(rounds) {
+    const selector = document.getElementById("roundrobin-round-select");
+    selector.innerHTML = '';
+    for (var i = 0; i < rounds; i++) {
+        const option = document.createElement("option");
+        option.value = (i + 1).toString();
+        option.innerText = (i + 1).toString();
+        selector.appendChild(option);
+    }
+}
+const roundRobinRound = document.getElementById("roundrobin-round-select");
+roundRobinRound.addEventListener("change", function () {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield updateBracket(parseInt(roundRobinRound.value));
+    });
+});
 const tl = gsap.timeline();
 function updateCamera(bracketType, noAnim = false) {
     var camFocusVal = document.querySelector('input[name="cam-focus"]:checked').value;
-    //i hope you like nested code (remember this is just a prototype!)
     switch (bracketType) {
         case "elim":
             if (camFocusVal == "all") {
@@ -125,6 +143,7 @@ function updateCamera(bracketType, noAnim = false) {
             }
             break;
         case "swiss":
+            sortGroups();
             if (camFocusVal == "all") {
                 showAll(noAnim);
             }
@@ -133,13 +152,17 @@ function updateCamera(bracketType, noAnim = false) {
             else if (camFocusVal == "finished") {
             }
             break;
-        case "groups":
+        case "roundrobin":
+            sortGroups();
             if (camFocusVal == "all") {
-                showAll(noAnim);
+                groupRoundVisibility("all");
+                showAll(true);
             }
             else if (camFocusVal == "in-progress") {
+                groupRoundVisibility("in-progress");
             }
             else if (camFocusVal == "finished") {
+                groupRoundVisibility("finished");
             }
             break;
     }
@@ -223,30 +246,30 @@ function centerOnElements(elementsOfInterest, noAnim = false) {
     for (var i = 0; i < elementsOfInterest.length; i++) {
         const elim = elementsOfInterest[i];
         const pos = getPosOfElement(root, elim);
-        console.log(elementsOfInterest[i], pos);
+        // console.log(elementsOfInterest[i], pos);
         maxWidth = Math.max(...pos[0], maxWidth);
         minWidth = Math.min(...pos[0], minWidth);
         maxHeight = Math.max(...pos[1], maxHeight);
         minHeight = Math.min(...pos[1], minHeight);
     }
-    console.log(maxWidth, minWidth, maxHeight, minHeight);
+    // console.log(maxWidth, minWidth, maxHeight, minHeight);
     const targetWidth = maxWidth - minWidth;
     const targetHeight = maxHeight - minHeight;
     var scale = 1;
     if (targetWidth > root.clientWidth) {
         scale = (root.clientWidth / Math.max(targetWidth, 500)) * .97;
-        console.log("fit via width");
+        // console.log("fit via width");
         if (targetHeight * scale > root.clientHeight) {
             scale = (root.clientHeight / Math.max(targetHeight, 500)) * .97;
-            console.log("then fit via height");
+            // console.log("then fit via height");
         }
     }
     else {
         scale = (root.clientHeight / Math.max(targetHeight, 500)) * .97;
-        console.log("fit via height");
+        // console.log("fit via height");
         if (targetWidth * scale > root.clientWidth) {
             scale = (root.clientWidth / Math.max(targetWidth, 500)) * .97;
-            console.log("then fit via width");
+            // console.log("then fit via width");
         }
     }
     moveCamera(bracket, (root.clientWidth - maxWidth * scale - minWidth * scale) / 2, (root.clientHeight - maxHeight * scale - minHeight * scale) / 2, scale, noAnim);
@@ -280,6 +303,55 @@ function deUpdateBracketVisability(bracket) {
         opacity: bracket != "losers" ? 1 : 0,
         duration: 1
     }, "<");
+}
+function sortGroups() {
+    function comparator(a, b) {
+        if (a.dataset.roundStatus == "in-progress" && b.dataset.roundStatus != "in-progress") {
+            return 1;
+        }
+        if (a.dataset.roundStatus == b.dataset.roundStatus) {
+            return 0;
+        }
+        else {
+            return -1;
+        }
+    }
+    const groups = document.querySelectorAll(".group-bracket-wrapper");
+    for (var i = 0; i < groups.length; i++) {
+        const rounds = groups[i].querySelectorAll("[data-round-status]");
+        const roundsSorted = Array.from(rounds).sort(comparator);
+        roundsSorted.forEach(e => groups[i].appendChild(e));
+    }
+}
+function groupRoundVisibility(focus) {
+    switch (focus) {
+        case "all":
+            gsap.to("[data-round-status]", {
+                duration: .25,
+                opacity: 1
+            });
+            break;
+        case "in-progress":
+            gsap.to("[data-round-status=\"in-progress\"]", {
+                duration: .25,
+                opacity: 1
+            });
+            gsap.to("[data-round-status=\"finished\"]", {
+                duration: .25,
+                opacity: .4
+            });
+            break;
+        case "finished":
+            gsap.to("[data-round-status=\"finished\"]", {
+                duration: .25,
+                opacity: 1
+            });
+            gsap.to("[data-round-status=\"in-progress\"]", {
+                duration: .25,
+                opacity: .4
+            });
+            break;
+    }
 }
 function getDoubleEliminationElement(matches) {
     const element = document.createElement("div");
@@ -404,9 +476,9 @@ function getRoundRobinElement(matches, round) {
     const element = document.createElement("div");
     element.className = "roundrobin-bracket-wrapper";
     element.classList.add("bracket");
-    console.log(matches, matches.length);
+    // console.log(matches, matches.length);
     const groups = Array.apply(null, Array(matches[matches.length - 1].group)).map(function () { return []; });
-    console.log(groups);
+    // console.log(groups);
     for (var i = 0; i < matches.length; i++) {
         if (matches[i].roundNumber == round) {
             groups[matches[i].group - 1].push(getGroupStyleMatchElement(matches[i]));
