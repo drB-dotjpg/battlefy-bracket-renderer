@@ -38,7 +38,8 @@ This is the data needed to put bracket data graphics on a stream
 ```js
 {
     "bracketType": "elim / double-elim / swiss / groups",
-    "bracketId": "id",
+    "bracketId": "",
+    "bracketName": "",
     "bracketMatches":
     [
         {

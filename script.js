@@ -397,7 +397,7 @@ function animateOut() {
                 from: 0,
                 amount: .15
             },
-            ease: "power2.out",
+            ease: "power2.in",
             onComplete: function () {
                 const zoom = document.getElementById("zoom");
                 zoom.innerHTML = "";
