@@ -4,8 +4,25 @@ const select = document.getElementById("bracket-select");
 var brackets : BracketInfo[];
 var currentBracket: BracketInfo = undefined;
 
+select.addEventListener("change", function(){
+    const bracket = brackets[parseInt((<HTMLSelectElement>select).value)];
+    switch(bracket.type){
+        case "elimination":
+            if (bracket.style == "double"){
+                showControl("double-elim")
+            } else {
+                showControl("elim")
+            }
+            break;
+        case "swiss":
+            showControl("swiss");
+            break;
+        case "roundrobin":
+            showControl("roundrobin");
+    }
+});
+
 async function updateBracket(){
-    const camera = document.getElementById("camera");
     const zoom = document.getElementById("zoom");
 
     const bracket = brackets[parseInt((<HTMLSelectElement>select).value)];
@@ -14,12 +31,11 @@ async function updateBracket(){
     const animate = !areBracketsEqual(bracket, currentBracket);
     currentBracket = bracket;
 
-    if (animate){
-        camera.style.transform = "translate(0px,0px)";
-        zoom.style.transform = "scale(0,0)";
+    if (animate) {
+        await animateOut();
+    } else {
+        zoom.innerHTML = "";
     }
-
-    zoom.innerHTML = '';
 
     switch(bracket.type){
         case "elimination":
@@ -34,6 +50,7 @@ async function updateBracket(){
             }
             break;
         case "swiss":
+            const swissRound = document.getElementById("swiss-round-select") as HTMLSelectElement;
             var roundNum = parseInt(swissRound.value);
             console.log(roundNum);
             if (isNaN(roundNum)){
@@ -46,6 +63,7 @@ async function updateBracket(){
             updateCamera("swiss", animate);
             break;
         case "roundrobin":
+            const roundRobinRound = document.getElementById("roundrobin-round-select") as HTMLSelectElement;
             var roundNum = parseInt(roundRobinRound.value);
             if (isNaN(roundNum)){
                 addRoundRobinRoundControls(matches[matches.length-1].roundNumber);
@@ -57,6 +75,8 @@ async function updateBracket(){
             updateCamera("roundrobin", animate);
             break;
     }
+
+    if (animate) animateIn();
 }
 
 async function searchForBrackets(){
@@ -99,11 +119,6 @@ function addSwissRoundControls(rounds: number){
     }
 }
 
-const swissRound = document.getElementById("swiss-round-select") as HTMLSelectElement;
-swissRound.addEventListener("change", async function(){
-    await updateBracket();
-});
-
 function addRoundRobinRoundControls(rounds: number){
     const selector = document.getElementById("roundrobin-round-select");
     selector.innerHTML = '';
@@ -114,11 +129,6 @@ function addRoundRobinRoundControls(rounds: number){
         selector.appendChild(option);
     }
 }
-
-const roundRobinRound = document.getElementById("roundrobin-round-select") as HTMLSelectElement;
-roundRobinRound.addEventListener("change", async function(){
-    await updateBracket();
-});
 
 function areBracketsEqual(bracket1: BracketInfo, bracket2: BracketInfo){
     if (bracket1 === undefined || bracket2 === undefined){

@@ -10,19 +10,37 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const select = document.getElementById("bracket-select");
 var brackets;
 var currentBracket = undefined;
+select.addEventListener("change", function () {
+    const bracket = brackets[parseInt(select.value)];
+    switch (bracket.type) {
+        case "elimination":
+            if (bracket.style == "double") {
+                showControl("double-elim");
+            }
+            else {
+                showControl("elim");
+            }
+            break;
+        case "swiss":
+            showControl("swiss");
+            break;
+        case "roundrobin":
+            showControl("roundrobin");
+    }
+});
 function updateBracket() {
     return __awaiter(this, void 0, void 0, function* () {
-        const camera = document.getElementById("camera");
         const zoom = document.getElementById("zoom");
         const bracket = brackets[parseInt(select.value)];
         const matches = bracket.type != "roundrobin" ? yield getBracketMatches(bracket) : yield getRoundRobinMatches(bracket);
         const animate = !areBracketsEqual(bracket, currentBracket);
         currentBracket = bracket;
         if (animate) {
-            camera.style.transform = "translate(0px,0px)";
-            zoom.style.transform = "scale(0,0)";
+            yield animateOut();
         }
-        zoom.innerHTML = '';
+        else {
+            zoom.innerHTML = "";
+        }
         switch (bracket.type) {
             case "elimination":
                 if (bracket.style == "double") {
@@ -37,6 +55,7 @@ function updateBracket() {
                 }
                 break;
             case "swiss":
+                const swissRound = document.getElementById("swiss-round-select");
                 var roundNum = parseInt(swissRound.value);
                 console.log(roundNum);
                 if (isNaN(roundNum)) {
@@ -48,6 +67,7 @@ function updateBracket() {
                 updateCamera("swiss", animate);
                 break;
             case "roundrobin":
+                const roundRobinRound = document.getElementById("roundrobin-round-select");
                 var roundNum = parseInt(roundRobinRound.value);
                 if (isNaN(roundNum)) {
                     addRoundRobinRoundControls(matches[matches.length - 1].roundNumber);
@@ -58,6 +78,8 @@ function updateBracket() {
                 updateCamera("roundrobin", animate);
                 break;
         }
+        if (animate)
+            animateIn();
     });
 }
 function searchForBrackets() {
@@ -97,12 +119,6 @@ function addSwissRoundControls(rounds) {
         selector.appendChild(option);
     }
 }
-const swissRound = document.getElementById("swiss-round-select");
-swissRound.addEventListener("change", function () {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield updateBracket();
-    });
-});
 function addRoundRobinRoundControls(rounds) {
     const selector = document.getElementById("roundrobin-round-select");
     selector.innerHTML = '';
@@ -113,12 +129,6 @@ function addRoundRobinRoundControls(rounds) {
         selector.appendChild(option);
     }
 }
-const roundRobinRound = document.getElementById("roundrobin-round-select");
-roundRobinRound.addEventListener("change", function () {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield updateBracket();
-    });
-});
 function areBracketsEqual(bracket1, bracket2) {
     if (bracket1 === undefined || bracket2 === undefined) {
         return false;
@@ -126,13 +136,12 @@ function areBracketsEqual(bracket1, bracket2) {
     return bracket1.id == bracket2.id;
 }
 const tl = gsap.timeline();
-function updateCamera(bracketType, animIn = false) {
+function updateCamera(bracketType, noAnim = false) {
     var camFocusVal = document.querySelector('input[name="cam-focus"]:checked').value;
-    console.log(animIn);
     switch (bracketType) {
         case "elim":
             if (camFocusVal == "all") {
-                showAll(animIn);
+                showAll(noAnim);
             }
             else if (camFocusVal == "in-progress") {
                 showInProgress();
@@ -144,7 +153,7 @@ function updateCamera(bracketType, animIn = false) {
         case "double-elim":
             const bracketFocusVal = document.querySelector('input[name="de-bracket-cam"]:checked').value;
             if (camFocusVal == "all") {
-                showAllDE(bracketFocusVal, animIn);
+                showAllDE(bracketFocusVal, noAnim);
             }
             else if (camFocusVal == "in-progress") {
                 showInProgressDE(bracketFocusVal);
@@ -157,7 +166,6 @@ function updateCamera(bracketType, animIn = false) {
             sortGroups();
             if (camFocusVal == "all") {
                 groupRoundVisibility("all");
-                showAll(animIn);
             }
             else if (camFocusVal == "in-progress") {
                 groupRoundVisibility("in-progress");
@@ -165,12 +173,12 @@ function updateCamera(bracketType, animIn = false) {
             else if (camFocusVal == "finished") {
                 groupRoundVisibility("finished");
             }
+            showAll(noAnim);
             break;
         case "roundrobin":
             sortGroups();
             if (camFocusVal == "all") {
                 groupRoundVisibility("all");
-                showAll(animIn);
             }
             else if (camFocusVal == "in-progress") {
                 groupRoundVisibility("in-progress");
@@ -178,26 +186,8 @@ function updateCamera(bracketType, animIn = false) {
             else if (camFocusVal == "finished") {
                 groupRoundVisibility("finished");
             }
+            showAll(noAnim);
             break;
-    }
-    if (animIn) {
-        tl.fromTo([".group-round-wrapper", ".elim-round-wrapper"], {
-            opacity: 0,
-            scale: .8
-        }, {
-            opacity: 1,
-            scale: 1,
-            ease: "power2.out",
-            duration: .5,
-            stagger: .025
-        })
-            .fromTo([".group-header", ".grid-header"], {
-            opacity: 0
-        }, {
-            opacity: 1,
-            ease: "power2.out",
-            duration: 1
-        }, "<");
     }
 }
 function showAll(noAnim = false) {
@@ -208,19 +198,19 @@ function showAll(noAnim = false) {
 function showAllDE(bracket, noAnim = false) {
     if (bracket == "both") {
         showAll(noAnim);
-        deUpdateBracketVisability(bracket);
+        deUpdateBracketVisability(bracket, noAnim);
         return;
     }
     var bracketOfInterest;
     if (bracket == "winners") {
         bracketOfInterest = document.querySelectorAll(".bracket[data-bracket-type=winners]");
         centerOnElements(bracketOfInterest, noAnim);
-        deUpdateBracketVisability(bracket);
+        deUpdateBracketVisability(bracket, noAnim);
     }
     else if (bracket == "losers") {
         bracketOfInterest = document.querySelectorAll(".bracket[data-bracket-type=losers]");
         centerOnElements(bracketOfInterest, noAnim);
-        deUpdateBracketVisability(bracket);
+        deUpdateBracketVisability(bracket, noAnim);
     }
 }
 function showInProgress() {
@@ -323,14 +313,14 @@ function moveCamera(x, y, scale, instant = false) {
         ease: "power2.inOut"
     }, "<");
 }
-function deUpdateBracketVisability(bracket) {
+function deUpdateBracketVisability(bracket, instant = false) {
     tl.to(".bracket[data-bracket-type=losers]", {
         opacity: bracket != "winners" ? 1 : 0,
-        duration: 1
+        duration: instant ? 0 : 1
     }, "<");
     tl.to(".bracket[data-bracket-type=winners]", {
         opacity: bracket != "losers" ? 1 : 0,
-        duration: 1
+        duration: instant ? 0 : 1
     }, "<");
 }
 function sortGroups() {
@@ -381,6 +371,40 @@ function groupRoundVisibility(focus) {
             });
             break;
     }
+}
+function animateIn() {
+    return tl.fromTo([".elim-grid-wrapper", ".group-bracket-wrapper"], {
+        opacity: 0,
+        scale: .85
+    }, {
+        opacity: 1,
+        scale: 1,
+        duration: .5,
+        stagger: {
+            from: 0,
+            amount: .15
+        },
+        ease: "power2.out"
+    });
+}
+function animateOut() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return tl.to([".elim-grid-wrapper", ".group-bracket-wrapper"], {
+            opacity: 0,
+            duration: .5,
+            scale: .85,
+            stagger: {
+                from: 0,
+                amount: .15
+            },
+            ease: "power2.out",
+            onComplete: function () {
+                const zoom = document.getElementById("zoom");
+                zoom.innerHTML = "";
+                return Promise.resolve();
+            }
+        });
+    });
 }
 function getDoubleEliminationElement(matches) {
     const element = document.createElement("div");

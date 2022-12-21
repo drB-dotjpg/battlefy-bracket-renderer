@@ -22,8 +22,7 @@
     flex-direction: column;
     align-items: stretch;
     flex-wrap: nowrap;
-    background-color: whitesmoke;
-    border-radius: .5em;
+    background-color: white;
     font-size: .8em;
     margin: .08em 0;
 }
@@ -32,10 +31,13 @@
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    border-radius: .25em;
     padding-left: .5em;
     white-space: nowrap;
     min-width: 8em;
+}
+
+.elim-round-wrapper > .team-wrapper:first-child{
+    border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
 
 .elim-round-wrapper > .team-wrapper > .team {
@@ -44,10 +46,9 @@
 
 .elim-round-wrapper > .team-wrapper > .score {
     font-weight: 700;
-    font-size: 1.2em;
-    padding: 0 .2em;
-    border-radius: .25em;
-    margin: .05em .2em;
+    padding: .1em 0;
+    width: 2ch;
+    text-align: center;
     background-color: rgba(0, 0, 0, 0.068);
 }
 
@@ -70,11 +71,9 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    background-color: whitesmoke;
-    border-radius: .5em;
+    background-color: white;
     margin-top: 5px;
     font-size: 1em;
-    padding: .1em .2em;
 }
 
 .group-round-wrapper > .team-wrapper {
@@ -98,7 +97,8 @@
 
 .group-round-wrapper > .team-wrapper > .score {
     margin: 0 10px;
-    width: 25px;
+    padding: .1rem 0;
+    width: 2.5ch;
     height: fit-content;
     text-align: center;
     background-color: rgba(0, 0, 0, 0.068);
@@ -116,7 +116,8 @@
 
 
 .winner {
-    color: blue;
+    color: darkgoldenrod;
+    font-weight: bold;
 }
 
 .elim-third{
@@ -125,13 +126,14 @@
 }
 
 div[data-round-status="finished"]{
-    background: rgb(242, 252, 255);
+    background: rgb(252, 249, 244)
 }
 
 div[data-round-status="in-progress"]{
-    box-shadow: 0 0 8px rgba(0, 0, 255, 0.582);
+    box-shadow: 0 0 6px rgb(177, 144, 92)
+
 }
 
 div[data-round-status="not-started"]{
-    background: #cfcfcf;
+    background: #b3b3b3;
 }

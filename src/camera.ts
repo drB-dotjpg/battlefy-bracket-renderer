@@ -1,14 +1,13 @@
 declare var gsap: any;
 const tl = gsap.timeline();
 
-function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobin", animIn: boolean = false){
+function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobin", noAnim: boolean = false){
     var camFocusVal = (document.querySelector('input[name="cam-focus"]:checked') as HTMLSelectElement).value;
-    console.log(animIn);
 
     switch(bracketType){
         case "elim":
             if(camFocusVal == "all"){
-                showAll(animIn);
+                showAll(noAnim);
             } else if (camFocusVal == "in-progress") {
                 showInProgress();
             } else if (camFocusVal == "finished"){
@@ -19,7 +18,7 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobi
         case "double-elim":
             const bracketFocusVal = (document.querySelector('input[name="de-bracket-cam"]:checked') as HTMLSelectElement).value;
             if(camFocusVal == "all"){
-                showAllDE(bracketFocusVal, animIn);
+                showAllDE(bracketFocusVal, noAnim);
             } else if (camFocusVal == "in-progress") {
                 showInProgressDE(bracketFocusVal);
             } else if (camFocusVal == "finished"){
@@ -31,45 +30,25 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobi
             sortGroups();
             if(camFocusVal == "all"){
                 groupRoundVisibility("all");
-                showAll(animIn);
             } else if (camFocusVal == "in-progress") {
                 groupRoundVisibility("in-progress");
             } else if (camFocusVal == "finished"){
                 groupRoundVisibility("finished");
             }
+            showAll(noAnim);
         break;
 
         case "roundrobin":
             sortGroups();
             if(camFocusVal == "all"){
                 groupRoundVisibility("all");
-                showAll(animIn);
             } else if (camFocusVal == "in-progress") {
                 groupRoundVisibility("in-progress");
             } else if (camFocusVal == "finished"){
                 groupRoundVisibility("finished");
             }
+            showAll(noAnim);
         break;
-    }
-
-    if (animIn){
-        tl.fromTo([".group-round-wrapper", ".elim-round-wrapper"], {
-            opacity: 0,
-            scale: .8
-        }, {
-            opacity: 1,
-            scale: 1,
-            ease: "power2.out",
-            duration: .5,
-            stagger: .025
-        })
-        .fromTo([".group-header", ".grid-header"], {
-            opacity: 0
-        }, {
-            opacity: 1,
-            ease: "power2.out",
-            duration: 1
-        }, "<");
     }
 }
 
@@ -83,7 +62,7 @@ function showAll(noAnim: boolean = false){
 function showAllDE(bracket: string, noAnim: boolean = false){
     if (bracket == "both"){
         showAll(noAnim);
-        deUpdateBracketVisability(bracket);
+        deUpdateBracketVisability(bracket, noAnim);
         return;
     }
 
@@ -91,11 +70,11 @@ function showAllDE(bracket: string, noAnim: boolean = false){
     if (bracket == "winners"){
         bracketOfInterest = document.querySelectorAll(".bracket[data-bracket-type=winners]");
         centerOnElements(bracketOfInterest, noAnim);
-        deUpdateBracketVisability(bracket);
+        deUpdateBracketVisability(bracket, noAnim);
     } else if (bracket == "losers"){
         bracketOfInterest = document.querySelectorAll(".bracket[data-bracket-type=losers]");
         centerOnElements(bracketOfInterest, noAnim);
-        deUpdateBracketVisability(bracket);
+        deUpdateBracketVisability(bracket, noAnim);
     }
 }
 
@@ -225,14 +204,14 @@ function moveCamera(x: number, y: number, scale: number, instant: boolean = fals
     }, "<");
 }
 
-function deUpdateBracketVisability(bracket: string) {
+function deUpdateBracketVisability(bracket: string, instant: boolean = false) {
     tl.to(".bracket[data-bracket-type=losers]", {
         opacity: bracket != "winners" ? 1 : 0,
-        duration: 1
+        duration: instant ? 0 : 1
     }, "<");
     tl.to(".bracket[data-bracket-type=winners]", {
         opacity: bracket != "losers" ? 1 : 0,
-        duration: 1
+        duration: instant ? 0 : 1
     }, "<");
 }
 
@@ -284,4 +263,38 @@ function groupRoundVisibility(focus: "all" | "in-progress" | "finished"){
             });
             break;
     }
+}
+
+ function animateIn(){
+    return tl.fromTo([".elim-grid-wrapper", ".group-bracket-wrapper"], {
+        opacity: 0,
+        scale: .85
+    }, {
+        opacity: 1,
+        scale: 1,
+        duration: .5,
+        stagger: {
+            from: 0,
+            amount: .15
+        },
+        ease: "power2.out"
+    });
+}
+
+async function animateOut() : Promise<void> {
+    return tl.to([".elim-grid-wrapper", ".group-bracket-wrapper"], {
+        opacity: 0,
+        duration: .5,
+        scale: .85,
+        stagger: {
+            from: 0,
+            amount: .15
+        },
+        ease: "power2.out",
+        onComplete: function(){
+            const zoom = document.getElementById("zoom");
+            zoom.innerHTML = "";
+            return Promise.resolve(); 
+        }
+    });
 }
