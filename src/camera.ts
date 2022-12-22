@@ -54,9 +54,9 @@ function updateCamera(bracketType: "elim" | "double-elim" | "swiss" | "roundrobi
 
 function showAll(noAnim: boolean = false){
     const root = document.getElementById("bracket-zone");
-    var camera = root.querySelectorAll(".bracket");
+    var elems = root.querySelectorAll(".bracket, .elim-third");
 
-    centerOnElements(camera, noAnim);
+    centerOnElements(elems, noAnim);
 }
 
 function showAllDE(bracket: string, noAnim: boolean = false){
@@ -142,6 +142,9 @@ function centerOnElements(elementsOfInterest: NodeListOf<Element>, noAnim: boole
     for (var i = 0; i < elementsOfInterest.length; i++){
         const elim = elementsOfInterest[i] as HTMLElement;
         const pos = getPosOfElement(root, elim);
+        if (elim.classList.contains("elim-third")){
+            console.log(pos);
+        }
         // console.log(elementsOfInterest[i], pos);
 
         maxWidth = Math.max(...pos[0], maxWidth);

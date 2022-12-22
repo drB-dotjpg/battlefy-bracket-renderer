@@ -37,7 +37,7 @@
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    padding-left: .5em;
+    padding-left: .25rem;
     white-space: nowrap;
     min-width: 8em;
 }
@@ -129,6 +129,13 @@
 .elim-third{
     position: absolute;
     align-self: flex-end;
+}
+.elim-third::before{
+    content: "Third Place";
+    background-color: rgba(0, 0, 0, 0.068);
+    color: grey;
+    font-size: .6em;
+    padding: .05rem .25rem;
 }
 
 div[data-round-status="finished"]{

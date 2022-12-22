@@ -192,8 +192,8 @@ function updateCamera(bracketType, noAnim = false) {
 }
 function showAll(noAnim = false) {
     const root = document.getElementById("bracket-zone");
-    var camera = root.querySelectorAll(".bracket");
-    centerOnElements(camera, noAnim);
+    var elems = root.querySelectorAll(".bracket, .elim-third");
+    centerOnElements(elems, noAnim);
 }
 function showAllDE(bracket, noAnim = false) {
     if (bracket == "both") {
@@ -266,6 +266,9 @@ function centerOnElements(elementsOfInterest, noAnim = false) {
     for (var i = 0; i < elementsOfInterest.length; i++) {
         const elim = elementsOfInterest[i];
         const pos = getPosOfElement(root, elim);
+        if (elim.classList.contains("elim-third")) {
+            console.log(pos);
+        }
         // console.log(elementsOfInterest[i], pos);
         maxWidth = Math.max(...pos[0], maxWidth);
         minWidth = Math.min(...pos[0], minWidth);
